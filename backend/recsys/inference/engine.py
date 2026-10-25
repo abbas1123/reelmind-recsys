@@ -175,7 +175,8 @@ class RecommendationEngine:
         item_id = int(self._idx_to_item[j])
         hist, ratings = vec.indices, vec.data
         liked = hist[ratings >= 4]  # never explain with a film the user rated low
-        if len(liked):
+        # The popularity ranking ignores the history, so a "because you liked" attribution would be false.
+        if len(liked) and strategy != "popularity":
             contrib = np.zeros(len(liked))
             ii = self._item_item_column(j)
             if ii is not None:

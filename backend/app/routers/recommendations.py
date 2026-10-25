@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db import User
-from app.deps import get_db, get_engine, get_user, has_app_activity, scored, user_history
+from app.deps import check_genres, get_db, get_engine, get_user, has_app_activity, scored, user_history
 from app.schemas import RecommendationsResponse, RecSection
 from recsys.inference.engine import RecommendationEngine
 
@@ -24,6 +24,7 @@ def recommendations(
     db: Session = Depends(get_db),
     engine: RecommendationEngine = Depends(get_engine),
 ) -> RecommendationsResponse:
+    check_genres(engine, genre)
     history = user_history(user, engine)
     preferred = sorted(p.genre for p in user.preferences)
     seen = {i for i, _ in history}

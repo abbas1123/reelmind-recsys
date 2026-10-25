@@ -195,7 +195,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         lines.append(f"| {name} | `{json.dumps(e.get('best_params', {}), default=_json_default)}` | "
                      f"{e.get('tuned_on', '—')} | {len(e.get('grid', [])) or '—'} |")
 
-    lines += ["", "## Limitlər", "", *[f"- {x}" for x in LIMITATIONS], ""]
+    lines += ["", "## Limitlər", "", *[f"- {x}" for x in report.get("limitations", LIMITATIONS)], ""]
     path.write_text("\n".join(lines), encoding="utf-8")
 
 

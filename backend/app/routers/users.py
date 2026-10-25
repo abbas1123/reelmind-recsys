@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import Item, User, UserGenrePreference
-from app.deps import get_db, get_engine, get_user, item_out, items_by_ids, user_out
+from app.deps import check_genres, get_db, get_engine, get_user, item_out, items_by_ids, user_out
 from app.schemas import GenreOut, ItemOut, PreferencesIn, UserCreate, UserOut
 from recsys.inference.engine import RecommendationEngine
 
@@ -68,6 +68,7 @@ def onboarding_candidates(genres: list[str] = Query(default=[]), k: int = Query(
                           db: Session = Depends(get_db),
                           engine: RecommendationEngine = Depends(get_engine)) -> list[ItemOut]:
     """Well-known, well-rated movies from the chosen genres for the user to rate first."""
+    check_genres(engine, *genres)
     ids = engine.onboarding_candidates(genres, k)
     lookup = items_by_ids(db, ids)
     return [item_out(lookup[i], engine) for i in ids if i in lookup]
@@ -76,9 +77,7 @@ def onboarding_candidates(genres: list[str] = Query(default=[]), k: int = Query(
 @router.put("/users/{user_id}/preferences", response_model=UserOut)
 def set_preferences(body: PreferencesIn, user: User = Depends(get_user), db: Session = Depends(get_db),
                     engine: RecommendationEngine = Depends(get_engine)) -> UserOut:
-    unknown = sorted(set(body.genres) - set(engine.genre_vocab))
-    if unknown:
-        raise HTTPException(status_code=422, detail=f"Unknown genres: {unknown}. Valid: {engine.genre_vocab}")
+    check_genres(engine, *body.genres)
     user = db.merge(user)
     user.preferences.clear()
     db.flush()

@@ -123,6 +123,7 @@ export default function MoviePage() {
               <span className="text-[13px] text-paper-3">Ratings and saves are folded into your recommendations immediately.</span>
             </div>
           )}
+          {(rate.error || unrate.error || fav.error) && <ErrorAlert error={rate.error ?? unrate.error ?? fav.error} />}
 
           {m.tags.length > 0 && (
             <div>

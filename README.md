@@ -93,8 +93,8 @@ Son tam training (seed 42, CPU, 7.8 dəq). Əsas protokol: qlobal temporal split
 | popularity (trending) | 0.1321 | 0.2071 [0.194, 0.220] | 0.1067 |
 | content_tfidf | 0.0644 | 0.1302 [0.121, 0.141] | 0.0559 |
 | content_embedding | 0.0596 | 0.1042 [0.095, 0.113] | 0.0479 |
-| biased_mf (RMSE 0.8951) | 0.0203 | 0.0433 [0.039, 0.048] | 0.0382 |
 | bias_baseline (RMSE 0.9198) | 0.0181 | 0.0437 [0.040, 0.048] | 0.0309 |
+| biased_mf (RMSE 0.8951) | 0.0203 | 0.0433 [0.039, 0.048] | 0.0382 |
 
 Əsas nəticələr: hybrid ən yaxşıdır, amma iALS ilə fərq kiçikdir (CI-lar üst-üstə düşür); trending popularity çox güclü baseline-dır; explicit modellər RMSE-də yaxşı, top-N-də zəifdir; per-user split-də sıralama dəyişir (EASE birinci) — ətraflı izah [docs/EVALUATION.md](docs/EVALUATION.md)-dədir.
 
@@ -113,7 +113,7 @@ Son yoxlama (bu maşında icra olunub):
 |---|---|---|
 | `tests/unit` (56) | ✅ keçdi | başlıq parse, validasiya qaydaları, split və leakage, zip-slip qorunması, metriklər (əllə hesablanmış nümunə + reference), hər model (oyuncaq data, fold-in, save/load, determinizm), hybrid switching, trending, `train --only` yoxlaması |
 | `tests/integration` (9, real data) | ✅ keçdi | ML-1M sayları, temporal split, 177 reytinqsiz film, hesabatın düzgünlüyü, test metrikinin təkrar hesablanması, engine self-check, real istifadəçilər üçün tövsiyələr, fold-in, janr filtri, cold item |
-| `tests/api` (14) | ✅ keçdi | profil CRUD, onboarding və cold start (bütün strategiyalar), reytinqlərin tövsiyələri dəyişməsi, izahların yalnız bəyənilən filmə istinadı, validasiya xətaları, favorit/tarixçə, MovieLens profili, axtarış (keyword + semantik), oxşar filmlər, hesabatın dəyişmədən verilməsi, degraded rejim |
+| `tests/api` (16) | ✅ keçdi | profil CRUD, naməlum janr filtrlərinin rədd edilməsi (422), onboarding və cold start (bütün strategiyalar), reytinqlərin tövsiyələri dəyişməsi, izahların yalnız bəyənilən filmə istinadı, validasiya xətaları, favorit/tarixçə, MovieLens profili, axtarış (keyword + semantik), oxşar filmlər, hesabatın dəyişmədən verilməsi, degraded rejim |
 | `frontend/e2e` (5, Playwright + Edge) | ✅ keçdi | onboarding → cold → light tövsiyələr; axtarış → film → reytinq + favorit → My list; MovieLens istifadəçisi (warm); dashboard rəqəmləri = API hesabatı; lokal semantik axtarış |
 | `ruff`, `tsc`, `vite build` | ✅ təmiz | lint, tip yoxlaması, production build |
 | GPU (`--extra gpu`) | ⏸ sınaqdan keçirilməyib | CUDA 12.8 torch quraşdırılmayıb (lazım deyil) |

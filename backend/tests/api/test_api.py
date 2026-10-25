@@ -196,3 +196,26 @@ def test_degraded_mode_without_engine(tmp_path, settings):
         user = c.post("/api/users", json={"display_name": "x"}).json()
         r = c.get(f"/api/users/{user['id']}/recommendations")
         assert r.status_code == 503 and "recsys" in r.json()["detail"]
+
+
+def test_unknown_genre_filters_are_rejected(client):
+    user = _new_user(client)
+    for path, params in [
+        (f"/api/users/{user['id']}/recommendations", {"genre": "Nope"}),
+        ("/api/items/trending", {"genre": "Nope"}),
+        ("/api/items/top-rated", {"genre": "Nope"}),
+        ("/api/onboarding/candidates", {"genres": ["Comedy", "Nope"]}),
+        ("/api/search", {"q": "love", "genre": "Nope"}),
+    ]:
+        r = client.get(path, params=params)
+        assert r.status_code == 422, (path, r.status_code)
+        assert "Nope" in r.json()["detail"]
+
+
+def test_popularity_strategy_does_not_claim_personal_reasons(client):
+    user = _new_user(client)
+    for item_id in (1, 2355, 3114):
+        client.put(f"/api/users/{user['id']}/ratings/{item_id}", json={"rating": 5})
+    recs = client.get(f"/api/users/{user['id']}/recommendations", params={"strategy": "popularity", "k": 10}).json()
+    reasons = [t["reason"] for t in recs["sections"][0]["items"]]
+    assert reasons and not any(r.startswith("Because you liked") for r in reasons)

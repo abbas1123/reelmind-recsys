@@ -100,6 +100,8 @@ def recommend(
 
     engine = RecommendationEngine.load(get_settings())
     history = engine.movielens_history(user)
+    if not history:
+        raise typer.Exit(code=_fail(f"MovieLens user {user} not found (valid ids: 1..6040)."))
     typer.echo(f"User {user}: {len(history)} ratings in history")
     for r in engine.recommend(history, k=k):
         typer.echo(f"  {r.score:6.3f}  {engine.title(r.item_id):<55} {r.reason}")

@@ -126,6 +126,7 @@ export default function OnboardingPage() {
         <>
           {candidates.isLoading && <CenterSpinner label="Finding well-known titles" />}
           {candidates.error && <ErrorAlert error={candidates.error} />}
+          {rate.error && <ErrorAlert error={rate.error} />}
           <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 md:grid-cols-6">
             {candidates.data?.map((item) => (
               <div key={item.id} className="flex flex-col gap-2" data-testid="onboarding-item">

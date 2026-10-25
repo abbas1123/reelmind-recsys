@@ -104,11 +104,11 @@ Test dövründə ilk dəfə görünən filmlər üzrə relevant hədəflər çox
 
 ## Robustness: per-user temporal split (NDCG@10, 5 774 istifadəçi)
 
-| ease | hybrid | item_knn | user_knn | ials | pure_svd | popularity | content_tfidf | content_embedding | biased_mf | bias_baseline |
+| ease | item_knn | hybrid | user_knn | ials | pure_svd | popularity | content_tfidf | content_embedding | biased_mf | bias_baseline |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 0.0845 | 0.0736 | 0.0756 | 0.0733 | 0.0708 | 0.0688 | 0.0535 | 0.0473 | 0.0389 | 0.0113 | 0.0097 |
+| 0.0845 | 0.0756 | 0.0736 | 0.0733 | 0.0708 | 0.0688 | 0.0535 | 0.0473 | 0.0389 | 0.0113 | 0.0097 |
 
-Bu protokolda sıralama dəyişir: EASE birincidir, hybrid geridə qalır. Səbəb: hybrid-in çəkiləri və trending komponenti qlobal temporal ssenari üçün tənzimlənib; per-user split-də hər istifadəçinin "gələcəyi" müxtəlif tarixlərdədir və ümumi trend siqnalı az kömək edir. Bu, **qiymətləndirmə protokolunun model seçiminə təsirini** göstərən yaxşı dərs nümunəsidir. Əsas protokol real istifadəyə (keçmişdə öyrən, gələcəyi tövsiyə et) daha yaxın olduğu üçün seçim ona görə edilir.
+Bu protokolda sıralama dəyişir: EASE birincidir, ItemKNN ikinci, hybrid üçüncüdür. Səbəb: hybrid-in çəkiləri və trending komponenti qlobal temporal ssenari üçün tənzimlənib; per-user split-də hər istifadəçinin "gələcəyi" müxtəlif tarixlərdədir və ümumi trend siqnalı az kömək edir. Bu, **qiymətləndirmə protokolunun model seçiminə təsirini** göstərən yaxşı dərs nümunəsidir. Əsas protokol real istifadəyə (keçmişdə öyrən, gələcəyi tövsiyə et) daha yaxın olduğu üçün seçim ona görə edilir.
 
 ## Limitlər
 

@@ -105,6 +105,11 @@ export default function HomePage() {
         </header>
         {recs.isLoading && <FeatureSkeleton />}
         {top && top.items.length > 0 && <Feature items={top.items} />}
+        {top && top.items.length === 0 && (
+          <p className="border-t border-rule pt-6 font-display text-2xl text-paper-3">
+            Nothing left to recommend with these filters — you have rated everything that matches. Try another genre or ranking.
+          </p>
+        )}
       </section>
 
       {rest.map((s, i) => (

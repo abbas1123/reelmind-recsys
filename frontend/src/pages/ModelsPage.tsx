@@ -20,6 +20,7 @@ import { Segmented } from "../components/Controls";
 import { CenterSpinner, ErrorAlert, Notice } from "../components/Feedback";
 
 const fmt = (v: number | null | undefined, d = 4) => (v === null || v === undefined || Number.isNaN(v) ? "—" : v.toFixed(d));
+const signedPct = (x: number) => `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)}%`;
 const VIZ = ["var(--viz-1)", "var(--viz-2)", "var(--viz-3)", "var(--viz-4)"];
 const axisTick = { fill: "var(--viz-text-2)", fontSize: 11, fontFamily: "IBM Plex Mono, monospace" };
 
@@ -143,8 +144,8 @@ function Report({ r, eda }: { r: EvaluationReport; eda: EdaSummary | undefined }
         {[
           { k: "Selected model", v: selected, s: `by validation ${metric}` },
           { k: `Test ${metric}`, v: fmt(best.metrics[metric]), s: best.ci95?.[metric] ? `95% CI ${fmt(best.ci95[metric][0], 3)}–${fmt(best.ci95[metric][1], 3)}` : "" },
-          { k: `vs ${runnerUp}`, v: `${lift >= 0 ? "+" : ""}${(lift * 100).toFixed(1)}%`, s: "relative test lift" },
-          { k: "vs popularity", v: pop ? `+${((best.metrics[metric] / pop - 1) * 100).toFixed(1)}%` : "—", s: "the baseline to beat" },
+          { k: `vs ${runnerUp}`, v: signedPct(lift), s: "relative test lift" },
+          { k: "vs popularity", v: pop ? signedPct(best.metrics[metric] / pop - 1) : "—", s: "the baseline to beat" },
           { k: "Warm test users", v: r.protocol.tasks.test_warm.toLocaleString(), s: `${r.dataset.n_interactions.toLocaleString()} ratings total` },
         ].map((s, i) => (
           <div key={s.k} className={`py-5 pr-4 ${i > 0 ? "md:border-l md:border-rule md:pl-5" : ""} ${i % 2 === 1 ? "border-l border-rule pl-4 md:pl-5" : ""}`}>

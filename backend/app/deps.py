@@ -40,6 +40,13 @@ def get_user(user_id: int, db: Session = Depends(get_db)) -> User:
     return user
 
 
+def check_genres(engine: RecommendationEngine, *genres: str | None) -> None:
+    """422 for genre filters outside the catalog vocabulary (instead of silently returning nothing)."""
+    unknown = sorted({g for g in genres if g} - set(engine.genre_vocab))
+    if unknown:
+        raise HTTPException(status_code=422, detail=f"Unknown genres: {unknown}. Valid: {engine.genre_vocab}")
+
+
 def get_item(item_id: int, db: Session) -> Item:
     item = db.get(Item, item_id)
     if item is None:

@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import Favorite, Item, Rating
-from app.deps import get_db, get_engine, get_item, item_out, items_by_ids, scored
+from app.deps import check_genres, get_db, get_engine, get_item, item_out, items_by_ids, scored
 from app.schemas import ItemDetail, ItemOut, PageOut, ScoredItem, SearchResponse
 from recsys.inference.engine import ArtifactsMissing, RecommendationEngine
 
@@ -19,6 +19,7 @@ router = APIRouter(tags=["catalog"])
 @router.get("/items/trending", response_model=list[ItemOut])
 def trending(k: int = Query(20, ge=1, le=100), genre: str | None = None, db: Session = Depends(get_db),
              engine: RecommendationEngine = Depends(get_engine)) -> list[ItemOut]:
+    check_genres(engine, genre)
     ids = engine.trending(k=k, genre=genre)
     lookup = items_by_ids(db, ids)
     return [item_out(lookup[i], engine) for i in ids if i in lookup]
@@ -28,6 +29,7 @@ def trending(k: int = Query(20, ge=1, le=100), genre: str | None = None, db: Ses
 def top_rated(k: int = Query(20, ge=1, le=100), genre: str | None = None,
               min_ratings: int = Query(50, ge=1), db: Session = Depends(get_db),
               engine: RecommendationEngine = Depends(get_engine)) -> list[ItemOut]:
+    check_genres(engine, genre)
     ids = engine.top_rated(k=k, genre=genre, min_ratings=min_ratings)
     lookup = items_by_ids(db, ids)
     return [item_out(lookup[i], engine) for i in ids if i in lookup]
@@ -59,6 +61,7 @@ def search(q: str = Query(..., min_length=1, max_length=200), mode: Literal["key
     """Keyword search (title match + TF-IDF over title/genres/tags) or semantic search (local embeddings)."""
     # Keyword search returns only real matches, so take all of them: filtering a truncated pool loses matches
     # (and under-reports `total`). Semantic scores every item, so it keeps a top-N pool.
+    check_genres(engine, genre)
     pool = max(k * 5, 150) if mode == "semantic" else engine.n_items
     try:
         hits = engine.semantic_search(q, pool) if mode == "semantic" else engine.keyword_search(q, pool)
