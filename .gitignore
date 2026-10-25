@@ -40,3 +40,4 @@ Thumbs.db
 artifacts/logs/
 *.tsbuildinfo
 .claude/scheduled_tasks.lock
+artifacts/posters/

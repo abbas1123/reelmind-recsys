@@ -1,13 +1,15 @@
 import { Button, Input, Label, TextField } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Database, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { api } from "../api/client";
 import type { User } from "../api/types";
+import { avatarGradient, initials } from "../components/AppShell";
 import { ErrorAlert, Notice } from "../components/Feedback";
 import { useProfile } from "../state/profile";
 
-const fieldInput = "h-11 rounded-none border-0 border-b border-rule-strong bg-transparent px-0 text-[15px] shadow-none focus:border-amber";
+const field = "h-12 rounded-full bg-surface-2 px-5 text-[15px] ring-1 ring-line focus:ring-2 focus:ring-brand";
 
 export default function ProfilesPage() {
   const navigate = useNavigate();
@@ -29,105 +31,94 @@ export default function ProfilesPage() {
   const mlValid = /^\d+$/.test(mlId) && Number(mlId) >= 1 && Number(mlId) <= 6040;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-14">
-      <section className="grid gap-8 pt-6 md:grid-cols-[1.4fr_1fr] md:items-end">
-        <div>
-          <p className="kicker">Tonight · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
-          <h1 className="mt-4 font-display text-[56px] leading-[0.92] tracking-[-0.02em] sm:text-[80px]">
-            Who&rsquo;s watching<span className="text-amber">?</span>
-          </h1>
-        </div>
-        <p className="max-w-sm text-[15px] leading-relaxed text-paper-2">
-          Every recommendation here is computed on this machine from 1,000,209 real MovieLens ratings — no cloud, no
-          paid APIs. Pick a profile, start a new one, or borrow the history of a real MovieLens viewer.
+    <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 py-6 sm:py-10">
+      <div className="text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">Who&rsquo;s watching?</h1>
+        <p className="mx-auto mt-4 max-w-xl text-base text-text-2">
+          Recommendations computed on this machine from <span className="font-semibold text-text">1,000,209</span> real
+          MovieLens ratings. Pick a profile, start fresh, or borrow a real viewer&rsquo;s history.
         </p>
-      </section>
+      </div>
 
-      {health.data?.status === "degraded" && (
-        <Notice title="Models not loaded" tone="signal">
-          {health.data.detail}
-        </Notice>
-      )}
+      {health.data?.status === "degraded" && <Notice title="Models are not loaded">{health.data.detail}</Notice>}
       {users.error && <ErrorAlert error={users.error} onRetry={() => users.refetch()} />}
 
       {users.data && users.data.length > 0 && (
-        <section aria-label="Existing profiles">
-          <p className="kicker mb-3">Profiles on this machine</p>
-          <ul className="border-t border-rule">
-            {users.data.map((u, i) => (
-              <li key={u.id}>
-                <button
-                  onClick={() => enter(u)}
-                  data-testid="profile-tile"
-                  className="group grid w-full grid-cols-[2.5rem_1fr_auto] items-baseline gap-4 border-b border-rule py-4 text-left outline-none focus-visible:bg-ink-raised"
-                >
-                  <span className="font-mono text-[11px] text-paper-3">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="truncate font-display text-[30px] leading-none transition-colors group-hover:text-amber">
-                    {u.display_name}
-                    {u.id === profileId && <span className="ml-3 align-middle font-mono text-[10px] tracking-[0.18em] text-amber">CURRENT</span>}
-                  </span>
-                  <span className="font-mono text-[11px] text-paper-3 tabular">
-                    {u.ml_user_id ? `MovieLens #${u.ml_user_id}` : `${u.n_ratings} rated · ${u.n_favorites} saved`}
-                    <span className="ml-3 inline-block transition-transform group-hover:translate-x-1">→</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <section aria-label="Existing profiles" className="flex flex-wrap justify-center gap-6 sm:gap-8">
+          {users.data.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => enter(u)}
+              data-testid="profile-tile"
+              className="group flex w-28 flex-col items-center gap-3 outline-none sm:w-36"
+            >
+              <span
+                className={`grid aspect-square w-full place-items-center rounded-3xl text-3xl font-extrabold text-white shadow-xl shadow-black/40 ring-offset-4 ring-offset-bg transition duration-300 group-hover:scale-105 group-hover:ring-4 group-hover:ring-white group-focus-visible:ring-4 group-focus-visible:ring-brand sm:text-4xl ${
+                  u.id === profileId ? "ring-2 ring-white/70" : ""
+                }`}
+                style={{ background: avatarGradient(u.id) }}
+                aria-hidden
+              >
+                {initials(u.display_name)}
+              </span>
+              <span className="w-full truncate text-center text-sm font-semibold text-text-2 group-hover:text-text">{u.display_name}</span>
+              <span className="-mt-2 text-xs text-text-3">{u.ml_user_id ? "MovieLens history" : `${u.n_ratings} rated`}</span>
+            </button>
+          ))}
         </section>
       )}
 
-      <section className="grid gap-12 border-t border-rule pt-8 md:grid-cols-2 md:gap-16">
+      <section className="grid w-full gap-4 md:grid-cols-2">
         <form
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-5 rounded-3xl bg-surface-1 p-6 ring-1 ring-line sm:p-8"
           onSubmit={(e) => {
             e.preventDefault();
             if (name.trim()) create.mutate();
           }}
         >
-          <div>
-            <p className="kicker">A — New profile</p>
-            <h2 className="mt-2 font-display text-[30px] leading-tight">Start from nothing</h2>
-            <p className="mt-2 text-sm leading-relaxed text-paper-2">
-              Choose a few genres, rate what you know, and watch the system move from popularity to collaborative filtering.
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-2xl bg-brand text-white" aria-hidden>
+              <UserPlus className="size-5" />
+            </span>
+            <div>
+              <h2 className="text-lg font-bold">New profile</h2>
+              <p className="text-sm text-text-3">Start cold and watch it learn your taste.</p>
+            </div>
           </div>
-          <TextField value={name} onChange={setName} aria-label="Profile name" className="flex flex-col gap-1">
-            <Label className="kicker">Name</Label>
-            <Input placeholder="e.g. Aysel" data-testid="new-profile-name" maxLength={80} className={fieldInput} />
+          <TextField value={name} onChange={setName} aria-label="Profile name" className="flex flex-col gap-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-text-3">Name</Label>
+            <Input placeholder="e.g. Aysel" data-testid="new-profile-name" maxLength={80} className={field} />
           </TextField>
-          <div>
-            <Button type="submit" variant="primary" isDisabled={!name.trim() || create.isPending} data-testid="create-profile">
-              Create profile
-            </Button>
-          </div>
-          {create.error && <p className="text-sm text-signal">{(create.error as Error).message}</p>}
+          <Button type="submit" variant="primary" size="lg" isDisabled={!name.trim() || create.isPending} data-testid="create-profile" className="rounded-full">
+            Create profile
+          </Button>
+          {create.error && <p className="text-sm text-[#ff5a6e]">{(create.error as Error).message}</p>}
         </form>
 
         <form
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-5 rounded-3xl bg-surface-1 p-6 ring-1 ring-line sm:p-8"
           onSubmit={(e) => {
             e.preventDefault();
             if (mlValid) fromMl.mutate();
           }}
         >
-          <div>
-            <p className="kicker">B — Borrow a history</p>
-            <h2 className="mt-2 font-display text-[30px] leading-tight">Watch as a MovieLens viewer</h2>
-            <p className="mt-2 text-sm leading-relaxed text-paper-2">
-              Load one of 6,040 real rating histories (ids 1–6040) to see what the trained models do for an established user.
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="grid size-11 place-items-center rounded-2xl bg-surface-3 text-white" aria-hidden>
+              <Database className="size-5" />
+            </span>
+            <div>
+              <h2 className="text-lg font-bold">Watch as a MovieLens viewer</h2>
+              <p className="text-sm text-text-3">Load one of 6,040 real rating histories.</p>
+            </div>
           </div>
-          <TextField value={mlId} onChange={setMlId} aria-label="MovieLens user id" className="flex flex-col gap-1">
-            <Label className="kicker">MovieLens user id</Label>
-            <Input inputMode="numeric" data-testid="ml-user-id" className={`${fieldInput} font-mono`} />
+          <TextField value={mlId} onChange={setMlId} aria-label="MovieLens user id" className="flex flex-col gap-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-text-3">MovieLens user id (1–6040)</Label>
+            <Input inputMode="numeric" data-testid="ml-user-id" className={`${field} tabular`} />
           </TextField>
-          <div>
-            <Button type="submit" variant="outline" isDisabled={!mlValid || fromMl.isPending} data-testid="open-ml-user">
-              Open history
-            </Button>
-          </div>
-          {fromMl.error && <p className="text-sm text-signal">{(fromMl.error as Error).message}</p>}
+          <Button type="submit" variant="secondary" size="lg" isDisabled={!mlValid || fromMl.isPending} data-testid="open-ml-user" className="rounded-full">
+            Open history
+          </Button>
+          {fromMl.error && <p className="text-sm text-[#ff5a6e]">{(fromMl.error as Error).message}</p>}
         </form>
       </section>
     </div>

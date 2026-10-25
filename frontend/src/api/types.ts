@@ -10,6 +10,7 @@ export interface Item {
   n_ratings: number;
   mean_rating: number | null;
   external_ids: Record<string, unknown>;
+  poster_url: string | null;
 }
 
 export interface ItemDetail extends Item {

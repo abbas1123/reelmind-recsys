@@ -18,6 +18,10 @@ cd backend; uv run recsys pipeline --skip-download   # embedding modeli ayrıca:
 
 `uv run recsys download-models` Hugging Face-dən `sentence-transformers/all-MiniLM-L6-v2` (~90 MB) yükləyir. Uğursuz olarsa sistem işləməyə davam edir: `content_embedding` və semantik axtarış söndürülür, TF-IDF content modeli qalır. Hesabatda bu, "skipped" kimi görünür.
 
+## Posterlər yüklənmir və ya çox yavaşdır
+
+`recsys download-posters` Wikimedia-nın limitlərinə hörmət edir (`429` cavabında `Retry-After` qədər gözləyir), ona görə bəzən dəqiqədə bir sorğuya düşə bilər. Aralıq nəticələr `artifacts/posters/lookup_cache.json`-da saxlanılır; dayandırıb sonra yenidən işlətsəniz qaldığı yerdən davam edir. Posterlər olmadan da hər şey işləyir — UI artwork göstərir. Yeni posterləri görmək üçün backend-i yenidən başladın.
+
 ## API `503 Recommendation engine not loaded`
 
 Artifaktlar yoxdur. Ardıcıllıq: `uv run recsys preprocess` → `uv run recsys train` (və ya hamısı: `uv run recsys pipeline`). `GET /api/health` səbəbi `detail` sahəsində göstərir.

@@ -108,3 +108,29 @@ def test_safe_extract_rejects_path_traversal(tmp_path):
     with pytest.raises(ValueError):
         _safe_extract(zpath, ("../escape.txt",), out)
     assert not (tmp_path / "escape.txt").exists()
+
+
+def test_poster_lookup_parsers():
+    from recsys.data.posters import parse_pageimages, parse_sparql
+
+    sparql = {"results": {"bindings": [
+        {"imdb": {"value": "tt0114709"}, "article": {"value": "https://en.wikipedia.org/wiki/Toy_Story"}},
+        {"imdb": {"value": "tt0076759"}, "article": {"value": "https://en.wikipedia.org/wiki/Star_Wars_%28film%29"}},
+        {"imdb": {"value": "tt0114709"}, "article": {"value": "https://en.wikipedia.org/wiki/Duplicate"}},
+    ]}}
+    assert parse_sparql(sparql) == {"tt0114709": "Toy Story", "tt0076759": "Star Wars (film)"}
+
+    pages = {"query": {
+        "normalized": [{"from": "Toy_Story", "to": "Toy Story"}],
+        "redirects": [{"from": "Old Title", "to": "Balto (film)"}],
+        "pages": {
+            "1": {"title": "Toy Story", "thumbnail": {"source": "https://upload.wikimedia.org/a/Toy_Story.jpg?utm=x"}},
+            "2": {"title": "Balto (film)", "thumbnail": {"source": "https://upload.wikimedia.org/b/Balto.jpg"}},
+            "3": {"title": "No Image Film"},
+        },
+    }}
+    urls = parse_pageimages(pages)
+    assert urls["Toy Story"] == "https://upload.wikimedia.org/a/Toy_Story.jpg"  # query string dropped
+    assert urls["Toy_Story"] == urls["Toy Story"]  # the title we asked for still resolves
+    assert urls["Old Title"] == "https://upload.wikimedia.org/b/Balto.jpg"  # redirects followed
+    assert "No Image Film" not in urls

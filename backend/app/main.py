@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app import posters
 from app.db import init_db, seed_items, session_factory
 from app.deps import get_db
 from app.routers import interactions, items, model_info, recommendations, users
@@ -41,6 +42,7 @@ def create_app(settings: Settings | None = None, load_engine: bool = True) -> Fa
         with app.state.session_factory() as s:
             if count_items(s) == 0 and (settings.p.processed_dir / "items.parquet").exists():
                 log.info("Seeding items table: %d items", seed_items(settings))
+        posters.load(settings.p.posters_dir)
         if load_engine:
             try:
                 app.state.engine = RecommendationEngine.load(settings)

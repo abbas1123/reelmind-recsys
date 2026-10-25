@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import posters
 from app.db import Item, User
 from app.schemas import ItemOut, ScoredItem, UserOut
 from recsys.config import Settings
@@ -67,6 +68,7 @@ def item_out(item: Item, engine: RecommendationEngine | None, max_tags: int = 8)
         n_ratings=stats.get("n_ratings", 0),
         mean_rating=round(stats["mean_rating"], 3) if stats.get("mean_rating") is not None else None,
         external_ids=item.external_ids or {},
+        poster_url=posters.url_for(item.id),
     )
 
 

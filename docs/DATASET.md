@@ -80,7 +80,7 @@ Hər istifadəçinin son 10%-i test, ondan əvvəlki 10%-i val (800 309 / 99 950
 
 - 2000–2003 dövrü; müasir kataloq və zövqlər yoxdur.
 - Reytinqlər explicit-dir; top-N modellər onları "qarşılıqlı əlaqə" kimi qəbul edir.
-- Posterlər və film təsvirləri yoxdur. UI posterləri lokal generasiya edir və bunu açıq yazır.
+- MovieLens-də poster və film təsviri yoxdur. Posterlər ayrıca, opsional addımla (`recsys download-posters`) İngilis Wikipedia-dan yüklənir (IMDb id → Wikidata P345 → səhifə şəkli) və `artifacts/posters/manifest.json`-da mənbə səhifəsi ilə qeyd olunur. Onlar müəllif hüququ ilə qorunur, yalnız lokal dərs məqsədli istifadə olunur və paylaşılmır. Modellər posterlərdən istifadə etmir.
 - Tag-lər fərqli populyasiyadan və sonrakı illərdən gəlir; bəziləri populyarlıq siqnalı daşıyır (məs. `imdb top 250`).
 - Demoqrafik sahələr (`users.dat`) yalnız saxlanır, modellərdə istifadə olunmur.
 - Test dövründə cəmi 29 tam yeni istifadəçi var — test cold-start nəticələri səs-küylüdür; validation-da 611 cold istifadəçi var.

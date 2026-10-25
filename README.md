@@ -41,6 +41,7 @@ uv sync --extra embeddings          # Python asılılıqları (CPU torch)
 uv run recsys download              # ML-1M + ML-32M, MD5 yoxlaması (~245 MB, bir dəfə)
 uv run recsys download-models       # all-MiniLM-L6-v2 → artifacts/hf_cache (~90 MB, bir dəfə)
 uv run recsys preprocess            # validasiya, split, EDA → data/processed, artifacts/reports/eda.md
+uv run recsys download-posters      # Wikipedia posterləri → artifacts/posters (bir dəfə, açarsız; opsional)
 uv run recsys train                 # tuning + test + hybrid + serving modelləri + hesabat
 uv run recsys evaluate              # hesabatı göstər + saxlanmış modelləri yoxla
 uv run recsys seed-db               # SQLite kataloq (API başlayanda avtomatik də olur)
@@ -54,7 +55,7 @@ npm install
 npm run dev                         # http://127.0.0.1:5173 (/api → 8010 proxy)
 ```
 
-Hamısı bir komanda ilə: `uv run recsys pipeline` (download → models → preprocess → train → seed-db).
+Hamısı bir komanda ilə: `uv run recsys pipeline` (download → models → preprocess → posters → train → seed-db).
 
 ## Layihə strukturu
 
@@ -111,9 +112,9 @@ Son yoxlama (bu maşında icra olunub):
 
 | Test dəsti | Status | Nəyi yoxlayır |
 |---|---|---|
-| `tests/unit` (56) | ✅ keçdi | başlıq parse, validasiya qaydaları, split və leakage, zip-slip qorunması, metriklər (əllə hesablanmış nümunə + reference), hər model (oyuncaq data, fold-in, save/load, determinizm), hybrid switching, trending, `train --only` yoxlaması |
+| `tests/unit` (57) | ✅ keçdi | poster lookup parse, başlıq parse, validasiya qaydaları, split və leakage, zip-slip qorunması, metriklər (əllə hesablanmış nümunə + reference), hər model (oyuncaq data, fold-in, save/load, determinizm), hybrid switching, trending, `train --only` yoxlaması |
 | `tests/integration` (9, real data) | ✅ keçdi | ML-1M sayları, temporal split, 177 reytinqsiz film, hesabatın düzgünlüyü, test metrikinin təkrar hesablanması, engine self-check, real istifadəçilər üçün tövsiyələr, fold-in, janr filtri, cold item |
-| `tests/api` (18) | ✅ keçdi | profil CRUD, naməlum janr filtrlərinin rədd edilməsi (422), onboarding və cold start (bütün strategiyalar), reytinqlərin tövsiyələri dəyişməsi, izahların yalnız bəyənilən filmə istinadı, validasiya xətaları, favorit/tarixçə, eyni anda gələn təkrar yazma sorğuları (500 yox), UTC vaxt damğaları, MovieLens profili, axtarış (keyword + semantik), oxşar filmlər, hesabatın dəyişmədən verilməsi, degraded rejim |
+| `tests/api` (19) | ✅ keçdi | poster endpoint, profil CRUD, naməlum janr filtrlərinin rədd edilməsi (422), onboarding və cold start (bütün strategiyalar), reytinqlərin tövsiyələri dəyişməsi, izahların yalnız bəyənilən filmə istinadı, validasiya xətaları, favorit/tarixçə, eyni anda gələn təkrar yazma sorğuları (500 yox), UTC vaxt damğaları, MovieLens profili, axtarış (keyword + semantik), oxşar filmlər, hesabatın dəyişmədən verilməsi, degraded rejim |
 | `frontend/e2e` (5, Playwright + Edge) | ✅ keçdi | onboarding → cold → light tövsiyələr; axtarış → film → reytinq + favorit → My list; MovieLens istifadəçisi (warm); dashboard rəqəmləri = API hesabatı; lokal semantik axtarış |
 | `ruff`, `tsc`, `vite build` | ✅ təmiz | lint, tip yoxlaması, production build |
 | GPU (`--extra gpu`) | ⏸ sınaqdan keçirilməyib | CUDA 12.8 torch quraşdırılmayıb (lazım deyil) |
@@ -127,7 +128,8 @@ UI testləri ML-in düzgünlüyünə sübut sayılmır: data emalı, training v�
 
 ## Offline və GPU
 
-- Yükləmədən sonra hər şey offline işləyir: embedding modeli `artifacts/hf_cache/` qovluğundan `HF_HUB_OFFLINE=1` ilə yüklənir; fontlar npm paketi kimi bundle olunur (Google Fonts sorğusu yoxdur).
+- Yükləmədən sonra hər şey offline işləyir: embedding modeli `artifacts/hf_cache/` qovluğundan `HF_HUB_OFFLINE=1` ilə yüklənir; posterlər `artifacts/posters/`-dan backend tərəfindən verilir; font (Plus Jakarta Sans) npm paketi kimi bundle olunur (Google Fonts sorğusu yoxdur).
+- **Posterlər:** `recsys download-posters` IMDb id → Wikidata → İngilis Wikipedia səhifə şəkli yolu ilə bir dəfə yükləyir (API açarı lazım deyil). Wikimedia limitləri səbəbindən ~10–75 dəq çəkə bilər; aralıq nəticələr saxlanılır, təkrar işlədəndə qaldığı yerdən davam edir. Posterlər müəllif hüququ ilə qorunur: yalnız lokal, dərs məqsədli istifadə olunur, git-ə düşmür. Posteri olmayan filmlər üçün UI janr rəngindən artwork çəkir.
 - Default CPU. GPU (opsional): `uv sync --extra gpu` (PyTorch CUDA 12.8, RTX 50xx üçün lazımdır), `embeddings.device: auto`. **GPU yolu bu maşında sınaqdan keçirilməyib** — CPU-da 3 883 filmin embedding-i ~17 s çəkir, ona görə ehtiyac yoxdur.
 
 ## Yeni domen (musiqi, kitab, oyun)

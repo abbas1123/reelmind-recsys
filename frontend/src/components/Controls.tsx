@@ -1,13 +1,14 @@
 import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import type { ReactNode } from "react";
 
 interface Option<T extends string> {
   value: T;
-  label: string;
+  label: ReactNode;
   disabled?: boolean;
   testId?: string;
 }
 
-/** Hairline segmented control built on HeroUI's accessible ToggleButtonGroup. */
+/** Pill segmented control built on HeroUI's accessible ToggleButtonGroup. */
 export function Segmented<T extends string>({ label, value, onChange, options, size = "md" }: {
   label: string;
   value: T;
@@ -22,7 +23,7 @@ export function Segmented<T extends string>({ label, value, onChange, options, s
       disallowEmptySelection
       selectedKeys={new Set([value])}
       onSelectionChange={(keys) => onChange([...keys][0] as T)}
-      className="inline-flex gap-0 rounded-[3px] border border-rule-strong bg-transparent p-0 shadow-none"
+      className="inline-flex max-w-full gap-1 overflow-x-auto rounded-full bg-surface-2 p-1 shadow-none ring-1 ring-line [scrollbar-width:none]"
     >
       {options.map((o) => (
         <ToggleButton
@@ -30,7 +31,7 @@ export function Segmented<T extends string>({ label, value, onChange, options, s
           id={o.value}
           isDisabled={o.disabled}
           data-testid={o.testId}
-          className={`${size === "sm" ? "h-7 px-2.5 text-[11.5px]" : "h-9 px-3.5 text-[12.5px]"} rounded-none border-0 border-r border-rule-strong bg-transparent font-medium text-paper-3 shadow-none last:border-r-0 hover:bg-transparent hover:text-paper data-[selected]:bg-paper data-[selected]:text-ink data-[disabled]:opacity-40`}
+          className={`${size === "sm" ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm"} shrink-0 gap-1.5 rounded-full border-0 bg-transparent font-semibold text-text-2 shadow-none hover:bg-white/5 hover:text-text data-[selected]:bg-white data-[selected]:text-black data-[disabled]:opacity-40`}
         >
           {o.label}
         </ToggleButton>
@@ -39,7 +40,7 @@ export function Segmented<T extends string>({ label, value, onChange, options, s
   );
 }
 
-/** Horizontal, scrollable list of text filters (e.g. genres). */
+/** Horizontal, scrollable chip filters (e.g. genres). */
 export function FilterList({ label, value, onChange, options, allLabel = "All" }: {
   label: string;
   value: string | null;
@@ -49,7 +50,7 @@ export function FilterList({ label, value, onChange, options, allLabel = "All" }
 }) {
   const items = [{ name: null as string | null, count: undefined as number | undefined }, ...options];
   return (
-    <div className="scroll-row -mx-5 flex gap-1 overflow-x-auto px-5 sm:-mx-8 sm:px-8" role="group" aria-label={label}>
+    <div className="scroll-row -mx-4 flex gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10" role="group" aria-label={label}>
       {items.map(({ name, count }) => {
         const active = value === name;
         return (
@@ -58,12 +59,12 @@ export function FilterList({ label, value, onChange, options, allLabel = "All" }
             type="button"
             aria-pressed={active}
             onClick={() => onChange(name)}
-            className={`shrink-0 rounded-[3px] border px-2.5 py-1 text-[12.5px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-amber ${
-              active ? "border-paper bg-paper text-ink" : "border-rule text-paper-2 hover:border-rule-strong hover:text-paper"
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-brand ${
+              active ? "bg-white text-black" : "bg-surface-2 text-text-2 ring-1 ring-line hover:bg-surface-3 hover:text-text"
             }`}
           >
             {name ?? allLabel}
-            {count !== undefined && <span className={`ml-1.5 font-mono text-[10px] ${active ? "text-ink/60" : "text-paper-3"}`}>{count}</span>}
+            {count !== undefined && <span className={`ml-1.5 text-xs font-medium ${active ? "text-black/55" : "text-text-3"}`}>{count}</span>}
           </button>
         );
       })}

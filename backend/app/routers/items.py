@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import posters
 from app.db import Favorite, Item, Rating
 from app.deps import check_genres, get_db, get_engine, get_item, item_out, items_by_ids, scored
 from app.schemas import ItemDetail, ItemOut, PageOut, ScoredItem, SearchResponse
@@ -79,6 +81,15 @@ def search(q: str = Query(..., min_length=1, max_length=200), mode: Literal["key
     results = [(i, s) for i, s in hits if i in lookup and keep(lookup[i])]
     rows = [(i, s, None, mode, None) for i, s in results[:k]]
     return SearchResponse(query=q, mode=mode, total=len(results), results=scored(db, engine, rows))
+
+
+@router.get("/items/{item_id}/poster", response_class=FileResponse)
+def poster(item_id: int) -> FileResponse:
+    """Poster cached by `recsys download-posters` (404 when the film has none: the UI draws artwork)."""
+    path = posters.path_for(item_id)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"No cached poster for item {item_id}")
+    return FileResponse(path, headers={"Cache-Control": "public, max-age=604800, immutable"})
 
 
 @router.get("/items/{item_id}", response_model=ItemDetail)

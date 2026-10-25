@@ -1,37 +1,33 @@
-import { Skeleton } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
+import { Button, Skeleton } from "@heroui/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Info, Plus, Sparkles, Star } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { api } from "../api/client";
 import type { Bucket, ScoredItem, Strategy } from "../api/types";
 import { FilterList, Segmented } from "../components/Controls";
-import { CoverArt } from "../components/CoverArt";
 import { ErrorAlert } from "../components/Feedback";
-import { MovieMeta } from "../components/MovieCard";
-import { MovieRow } from "../components/MovieRow";
+import { MovieRow, Top10Row } from "../components/MovieRow";
+import { Poster } from "../components/Poster";
 import { useProfile } from "../state/profile";
 
 const STRATEGIES: { value: Strategy; label: string }[] = [
-  { value: "hybrid", label: "Hybrid" },
+  { value: "hybrid", label: "For you" },
   { value: "cf", label: "Collaborative" },
   { value: "content", label: "Content" },
-  { value: "popularity", label: "Popularity" },
+  { value: "popularity", label: "Popular" },
 ];
 
-const BUCKET_NOTE: Record<Bucket, { label: string; text: string }> = {
-  cold: {
-    label: "Cold start",
-    text: "No ratings yet. Popular, well-rated films weighted by the genres you chose.",
-  },
-  light: {
-    label: "Light history",
-    text: "One to four ratings. Hybrid weights tuned on simulated new users: collaborative, content and trending signals blended.",
-  },
-  warm: {
-    label: "Warm profile",
-    text: "Enough history for the collaborative hybrid, tuned on validation users and checked once on the test split.",
-  },
+const BUCKET_NOTE: Record<Bucket, string> = {
+  cold: "No ratings yet — popular, well-rated films weighted by the genres you picked.",
+  light: "A few ratings — hybrid weights tuned on simulated new users blend collaborative, content and trending signals.",
+  warm: "Enough history for the collaborative hybrid, tuned on validation users and checked once on the test split.",
 };
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
 
 export default function HomePage() {
   const { profile, profileId } = useProfile();
@@ -44,91 +40,60 @@ export default function HomePage() {
     enabled: profileId !== null,
   });
   const topRated = useQuery({ queryKey: ["topRated", genre], queryFn: () => api.topRated(20, genre) });
+  const trending = useQuery({ queryKey: ["trending10", genre], queryFn: () => api.trending(10, genre) });
 
   const top = recs.data?.sections.find((s) => s.key === "top_picks");
-  const rest = recs.data?.sections.filter((s) => s.key !== "top_picks") ?? [];
-  const note = recs.data ? BUCKET_NOTE[recs.data.bucket] : null;
+  const rest = recs.data?.sections.filter((s) => s.key !== "top_picks" && s.key !== "trending") ?? [];
+  const [lead, ...others] = top?.items ?? [];
 
   return (
-    <div className="flex flex-col gap-14">
-      <section className="grid gap-8 lg:grid-cols-[1fr_320px]">
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="kicker">
-            Programme · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
-          <h1 className="mt-4 font-display text-[48px] leading-[0.92] tracking-[-0.02em] sm:text-[72px]">
-            Picked for <em className="text-amber">{profile?.display_name ?? "you"}</em>
-          </h1>
+          <p className="text-sm font-semibold text-text-3">{greeting()}</p>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{profile?.display_name ?? "…"}</h1>
         </div>
-        <aside className="flex flex-col justify-end gap-3 border-l border-rule pl-5" data-testid="bucket">
-          {note ? (
-            <>
-              <p className="kicker !text-amber">
-                {note.label} <span className="sr-only">({recs.data!.bucket})</span>
-              </p>
-              <p className="text-[13.5px] leading-relaxed text-paper-2">{note.text}</p>
-              <p className="font-mono text-[11px] text-paper-3 tabular">
-                History: {recs.data!.history_size.toLocaleString()} ratings · bucket “{recs.data!.bucket}”
-              </p>
-            </>
-          ) : (
-            <Skeleton className="h-16 w-full rounded-sm" />
-          )}
-        </aside>
-      </section>
+        <Segmented label="Recommendation strategy" value={strategy} onChange={setStrategy} options={STRATEGIES} />
+      </div>
 
-      <section className="flex flex-col gap-4 border-y border-rule py-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <span className="kicker">Ranking</span>
-          <Segmented label="Recommendation strategy" value={strategy} onChange={setStrategy} options={STRATEGIES} size="sm" />
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="kicker shrink-0">Genre</span>
-          <div className="min-w-0 flex-1">
-            <FilterList
-              label="Filter by genre"
-              value={genre}
-              onChange={setGenre}
-              options={genres.data?.map((g) => ({ name: g.name })) ?? []}
-              allLabel="All genres"
-            />
-          </div>
-        </div>
-      </section>
+      <FilterList label="Filter by genre" value={genre} onChange={setGenre} options={genres.data?.map((g) => ({ name: g.name })) ?? []} allLabel="All genres" />
 
       {recs.error && <ErrorAlert error={recs.error} onRetry={() => recs.refetch()} />}
 
-      <section data-testid="section-top_picks" aria-label={top?.title ?? "Top picks"} className="flex flex-col gap-6">
-        <header className="flex items-end justify-between gap-4">
-          <h2 className="font-display text-[32px] leading-none">{top?.title ?? "Top picks for you"}</h2>
-          <span className="kicker">{strategy} ranking</span>
-        </header>
-        {recs.isLoading && <FeatureSkeleton />}
-        {top && top.items.length > 0 && <Feature items={top.items} />}
+      <section data-testid="section-top_picks" aria-label={top?.title ?? "Top picks"} className="flex flex-col gap-10">
+        {recs.isLoading && <Skeleton className="h-[440px] w-full rounded-[28px]" />}
+        {lead && <Billboard rec={lead} bucket={recs.data!.bucket} history={recs.data!.history_size} />}
         {top && top.items.length === 0 && (
-          <p className="border-t border-rule pt-6 font-display text-2xl text-paper-3">
+          <p className="rounded-3xl bg-surface-1 p-10 text-center text-text-2 ring-1 ring-line">
             Nothing left to recommend with these filters — you have rated everything that matches. Try another genre or ranking.
           </p>
         )}
+        {others.length > 0 && (
+          <MovieRow
+            title={top?.title ?? "Top picks for you"}
+            subtitle={STRATEGIES.find((s) => s.value === strategy)?.label + " ranking · personalised"}
+            items={others.map((x) => ({ item: x.item, reason: x.reason }))}
+          />
+        )}
       </section>
 
-      {rest.map((s, i) => (
-        <MovieRow
-          key={s.key}
-          index={String(i + 2).padStart(2, "0")}
-          testId={`section-${s.key}`}
-          title={s.title}
-          subtitle={s.key === "trending" ? "Recency-weighted popularity (half-life counted in interactions)" : "Item-to-item similarity, collaborative and content blended"}
-          items={s.items.map((x) => ({ item: x.item }))}
-        />
+      {rest.map((s) => (
+        <MovieRow key={s.key} testId={`section-${s.key}`} title={s.title} subtitle="Similar by who watched it and what it is about" items={s.items.map((x) => ({ item: x.item }))} />
       ))}
+
+      {trending.error && <ErrorAlert error={trending.error} onRetry={() => trending.refetch()} />}
+      <Top10Row
+        testId="section-trending"
+        title={genre ? `Top 10 in ${genre}` : "Top 10 trending"}
+        subtitle="Recency-weighted popularity (half-life counted in interactions)"
+        items={trending.data}
+      />
 
       {topRated.error && <ErrorAlert error={topRated.error} onRetry={() => topRated.refetch()} />}
       <MovieRow
-        index={String(rest.length + 2).padStart(2, "0")}
         testId="section-top-rated"
-        title={genre ? `The canon: ${genre}` : "The canon"}
-        subtitle="Highest damped average rating among films with at least 50 ratings"
+        title={genre ? `Highest rated ${genre}` : "All-time highest rated"}
+        subtitle="Damped average rating, at least 50 ratings"
         items={topRated.data?.map((item) => ({ item }))}
         loading={topRated.isLoading}
       />
@@ -136,74 +101,72 @@ export default function HomePage() {
   );
 }
 
-/** First pick as a large feature, the next picks as a numbered list, the remainder as a strip. */
-function Feature({ items }: { items: ScoredItem[] }) {
-  const [lead, ...others] = items;
-  const list = others.slice(0, 5);
-  const strip = others.slice(5);
+/** Netflix-style hero for the #1 recommendation with the poster as a blurred backdrop. */
+function Billboard({ rec, bucket, history }: { rec: ScoredItem; bucket: Bucket; history: number }) {
+  const { profileId, refresh } = useProfile();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const m = rec.item;
+  const save = useMutation({
+    mutationFn: () => api.favorite(profileId!, m.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["favorites"] });
+      refresh();
+    },
+  });
   return (
-    <div className="flex flex-col gap-10">
-      <div className="grid gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <article className="grid grid-cols-[minmax(0,200px)_1fr] gap-6" data-testid="movie-card" data-item-id={lead.item.id}>
-          <Link to={`/movie/${lead.item.id}`} className="block outline-none focus-visible:ring-2 focus-visible:ring-amber">
-            <CoverArt item={lead.item} />
-          </Link>
-          <div className="flex flex-col justify-end gap-3">
-            <span className="font-display text-[64px] leading-none text-amber">01</span>
-            <Link to={`/movie/${lead.item.id}`} className="font-display text-[34px] leading-[1.02] tracking-[-0.01em] hover:text-amber">
-              {lead.item.title}
-            </Link>
-            <MovieMeta item={lead.item} />
-            <p className="text-[12px] uppercase tracking-[0.14em] text-paper-3">{lead.item.genres.join(" · ")}</p>
-            {lead.reason && (
-              <p className="border-l-2 border-amber pl-3 font-display text-[18px] italic leading-snug text-paper-2" data-testid="rec-reason">
-                {lead.reason}
-              </p>
-            )}
-          </div>
-        </article>
-        <ol className="border-t border-rule">
-          {list.map((x, i) => (
-            <li key={x.item.id} className="border-b border-rule" data-testid="movie-card" data-item-id={x.item.id}>
-              <Link to={`/movie/${x.item.id}`} className="group grid grid-cols-[2.25rem_44px_1fr] items-center gap-4 py-3 outline-none focus-visible:bg-ink-raised">
-                <span className="font-mono text-[11px] text-paper-3">{String(i + 2).padStart(2, "0")}</span>
-                <CoverArt item={x.item} size="sm" />
-                <span className="min-w-0">
-                  <span className="block truncate font-display text-[21px] leading-tight group-hover:text-amber">{x.item.title}</span>
-                  <MovieMeta item={x.item} />
-                  {x.reason && (
-                    <span className="block truncate font-display text-[14px] italic text-paper-3" data-testid="rec-reason">
-                      {x.reason}
-                    </span>
-                  )}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
+    <article className="relative isolate overflow-hidden rounded-[28px] bg-surface-1 ring-1 ring-line" data-testid="movie-card" data-item-id={m.id}>
+      <div className="absolute inset-0 -z-10 scale-125 opacity-60 blur-3xl saturate-150" aria-hidden>
+        <Poster item={m} eager />
       </div>
-      {strip.length > 0 && (
-        <MovieRow title="More in this programme" index="—" items={strip.map((x) => ({ item: x.item, reason: x.reason }))} numbered={false} />
-      )}
-    </div>
-  );
-}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-bg via-bg/85 to-bg/30" aria-hidden />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-bg/80 via-transparent to-transparent" aria-hidden />
 
-function FeatureSkeleton() {
-  return (
-    <div className="grid gap-8 md:grid-cols-[1.15fr_1fr]">
-      <div className="grid grid-cols-[200px_1fr] gap-6">
-        <Skeleton className="aspect-[2/3] w-full rounded-[3px]" />
-        <div className="flex flex-col justify-end gap-3">
-          <Skeleton className="h-10 w-3/4 rounded-sm" />
-          <Skeleton className="h-4 w-1/2 rounded-sm" />
+      <div className="grid items-center gap-8 p-6 sm:p-10 md:grid-cols-[1fr_auto]">
+        <div className="flex max-w-2xl flex-col gap-4">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white ring-1 ring-white/15 backdrop-blur">
+            <Sparkles className="size-3.5 text-brand" aria-hidden /> #1 pick for you
+          </span>
+          <Link to={`/movie/${m.id}`} className="text-4xl font-extrabold leading-[1.02] tracking-tight hover:underline sm:text-6xl">
+            {m.title}
+          </Link>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-2">
+            <span className="font-semibold text-text">{m.year}</span>
+            {m.mean_rating !== null && (
+              <span className="flex items-center gap-1">
+                <Star className="size-4 fill-gold text-gold" aria-hidden />
+                <span className="font-semibold text-text">{m.mean_rating.toFixed(1)}</span> ({m.n_ratings.toLocaleString()} ratings)
+              </span>
+            )}
+            <span>{m.genres.join(" · ")}</span>
+          </p>
+          {rec.reason && (
+            <p className="flex items-center gap-2 text-base font-medium text-text" data-testid="rec-reason">
+              <Sparkles className="size-4 shrink-0 text-brand" aria-hidden />
+              {rec.reason}
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-3">
+            <Button size="lg" className="rounded-full bg-white px-7 font-bold text-black hover:bg-white/85" onPress={() => navigate(`/movie/${m.id}`)}>
+              View details
+            </Button>
+            <Button size="lg" variant="secondary" className="rounded-full bg-white/15 px-6 text-white backdrop-blur hover:bg-white/25" onPress={() => save.mutate()} isDisabled={save.isPending || save.isSuccess}>
+              {save.isSuccess ? <Check className="size-5" /> : <Plus className="size-5" />}
+              {save.isSuccess ? "Saved" : "My list"}
+            </Button>
+          </div>
+          {save.error && <ErrorAlert error={save.error} />}
+          <p className="mt-1 flex items-start gap-2 text-xs text-text-3" data-testid="bucket">
+            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            <span>
+              <span className="font-semibold uppercase text-text-2">{bucket}</span> · {BUCKET_NOTE[bucket]} History: {history.toLocaleString()} ratings.
+            </span>
+          </p>
         </div>
+        <Link to={`/movie/${m.id}`} className="hidden aspect-[2/3] w-56 overflow-hidden rounded-2xl shadow-2xl shadow-black/60 ring-1 ring-white/15 transition hover:scale-[1.02] md:block lg:w-64" tabIndex={-1} aria-hidden>
+          <Poster item={m} eager />
+        </Link>
       </div>
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-sm" />
-        ))}
-      </div>
-    </div>
+    </article>
   );
 }

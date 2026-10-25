@@ -102,10 +102,14 @@ Tam sənəd: `http://127.0.0.1:8010/docs` (OpenAPI).
 
 ## Frontend dizayn sistemi
 
-"Lokal sinemateka" konsepti — şablon görünüşündən qaçmaq üçün tipografiya mərkəzli editorial dizayn:
+Konsept tapşırıqdakı nümunələrdən gəlir: **Netflix + Spotify + Instagram Explore**.
 
-- **Tipografiya:** başlıqlar `Instrument Serif`, mətn `Inter Tight`, rəqəmlər və etiketlər `IBM Plex Mono`. Fontlar `@fontsource` paketləri ilə bundle olunur (offline işləyir).
-- **Rəng:** iki tema — "Ink" (isti qara, default) və "Paper" (isti kağız). Tək accent rəngi amber. Tokenlər `src/index.css`-də; HeroUI v3 tokenləri (`--accent`, `--background`, `--radius` ...) bu palitraya bağlanıb, ona görə HeroUI komponentləri (Button, SearchField, TextField, ToggleButtonGroup, Tabs, Skeleton, Spinner) eyni dili danışır.
-- **Cover-lar:** MovieLens-də poster yoxdur. `CoverArt` hər film üçün janr tonundan (film-stock rəngləri), film id-sinin hash-indən seçilən həndəsi motivdən (dairə, zolaqlar, diaqonal, halqalar, sütun) və serif başlıqdan "tipografik cover" qurur. Real şəkil olmadığı UI-da açıq yazılır.
-- **Qrafiklər:** kateqorial palitra (amber, teal, bənövşəyi, qırmızı) hər iki tema üçün ayrıca seçilib və dataviz validatoru ilə yoxlanıb (CVD ayrılması, kontrast, lightness band — hamısı PASS). Bütün qrafiklərdə tooltip, legend və eyni rəqəmləri göstərən cədvəl var.
-- **Layout:** hairline xətlər, nömrələnmiş bölmələr (`01`, `02` ...), Fig./Table nömrələri, mono rəqəmlər; 375 px-dən geniş ekranlarda horizontal scroll yoxdur.
+- **Layout:** Spotify kimi sol sidebar (naviqasiya, "Your genres", modellərin vəziyyəti), üstdə qlobal axtarış və profil; telefonda alt tab bar.
+- **Home (Netflix):** #1 tövsiyə üçün poster fonu blur edilmiş böyük "billboard" (izah, reytinq, "My list"), üfüqi karusellər (ox düymələri, snap), böyük konturlu rəqəmli **Top 10**, strategiya keçidi (For you / Collaborative / Content / Popular) və janr çipləri.
+- **Discover (Spotify + Instagram):** böyük axtarış sahəsi, *Keyword / AI semantic* keçidi, rəngli "Browse all" janr tile-ları (janrın ən populyar posteri əyri yerləşir), nəticələr üçün hər 7-ci elementi böyüdülmüş Explore grid.
+- **Film səhifəsi:** blur-lanmış poster fonu, böyük poster, janr rəngli çiplər, reytinq, "My list", community tag-ləri, "More like this / Viewers also rated / Same vibe".
+- **Profillər:** Netflix "Who's watching?" gradient avatarları.
+- **Insights:** KPI kartları, kart içində qrafiklər (Recharts) və cədvəllər; rəqəmlər yalnız `model_comparison.json`-dan.
+- **Tokenlər** (`src/index.css`): dark-only, qara fon `#0b0b10`, qatlı səthlər, accent `#ff3d5f` (mətn üçün) / `#d81f45` (ağ mətnin altında, 5:1), font Plus Jakarta Sans. Kiçik mətn kontrastı hər yerdə ≥ 4.5:1 (WCAG AA). HeroUI v3 tokenləri bu palitraya bağlanıb.
+- **Qrafik palitrası:** `#e84461, #009b8f, #816dd2, #c8800d` — `#14141b` fonunda dataviz validatoru ilə yoxlanıb (bütün yoxlamalar PASS). Bütün qrafiklərdə tooltip, legend və eyni rəqəmlərin cədvəli var.
+- **Şəkillər:** `Poster` komponenti backend-in `poster_url`-unu göstərir, şəkil yoxdursa janr rəngindən artwork çəkir.

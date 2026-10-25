@@ -272,3 +272,13 @@ def test_popularity_strategy_does_not_claim_personal_reasons(client):
     recs = client.get(f"/api/users/{user['id']}/recommendations", params={"strategy": "popularity", "k": 10}).json()
     reasons = [t["reason"] for t in recs["sections"][0]["items"]]
     assert reasons and not any(r.startswith("Because you liked") for r in reasons)
+
+
+def test_poster_endpoint_matches_poster_url(client):
+    detail = client.get("/api/items/1").json()
+    if detail["poster_url"] is None:
+        assert client.get("/api/items/1/poster").status_code == 404
+        pytest.skip("no cached posters (run `uv run recsys download-posters`)")
+    r = client.get(detail["poster_url"])
+    assert r.status_code == 200 and r.headers["content-type"].startswith("image/")
+    assert client.get("/api/items/99999999/poster").status_code == 404

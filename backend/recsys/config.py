@@ -36,6 +36,7 @@ class PathsConfig(BaseModel):
     reports_dir: Path = Path("artifacts/reports")
     embeddings_dir: Path = Path("artifacts/embeddings")
     hf_cache_dir: Path = Path("artifacts/hf_cache")
+    posters_dir: Path = Path("artifacts/posters")
     db_path: Path = Path("data/app.db")
 
     def resolved(self, root: Path = PROJECT_ROOT) -> PathsConfig:

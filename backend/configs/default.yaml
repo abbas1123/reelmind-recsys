@@ -13,6 +13,7 @@ paths:
   reports_dir: artifacts/reports
   embeddings_dir: artifacts/embeddings
   hf_cache_dir: artifacts/hf_cache
+  posters_dir: artifacts/posters
   db_path: data/app.db
 
 dataset:

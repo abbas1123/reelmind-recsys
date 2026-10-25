@@ -1,13 +1,15 @@
 import { Button } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Plus, Star, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api } from "../api/client";
 import { Segmented } from "../components/Controls";
-import { CoverArt } from "../components/CoverArt";
 import { CenterSpinner, ErrorAlert, Notice } from "../components/Feedback";
 import { MovieRow } from "../components/MovieRow";
+import { Poster } from "../components/Poster";
 import { RatingStars } from "../components/RatingStars";
+import { genreColor } from "../lib/genre";
 import { useProfile } from "../state/profile";
 
 type SimMode = "hybrid" | "collaborative" | "content";
@@ -66,113 +68,109 @@ export default function MoviePage() {
   const m = item.data;
 
   return (
-    <div className="flex flex-col gap-16">
-      <article className="grid gap-10 md:grid-cols-[300px_1fr] lg:gap-16">
-        <div className="mx-auto w-60 md:w-full">
-          <CoverArt item={m} size="lg" />
-          <p className="mt-3 font-mono text-[10px] leading-relaxed text-paper-3">Cover typeset from metadata. MovieLens contains no artwork.</p>
+    <div className="flex flex-col gap-12">
+      <article className="relative isolate -mx-4 -mt-4 overflow-hidden px-4 pb-10 pt-8 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10 lg:pt-14">
+        <div className="absolute inset-0 -z-10 scale-125 opacity-50 blur-3xl saturate-150" aria-hidden>
+          <Poster item={m} eager />
         </div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-bg/40 via-bg/80 to-bg" aria-hidden />
 
-        <div className="flex flex-col gap-8">
-          <div>
-            <p className="kicker">
-              No. {m.id} · {m.year ?? "year unknown"} ·{" "}
-              {m.genres.map((g, i) => (
-                <span key={g}>
-                  {i > 0 && " / "}
-                  <Link to={`/discover?genre=${encodeURIComponent(g)}`} className="hover:text-amber">
-                    {g}
-                  </Link>
-                </span>
-              ))}
-            </p>
-            <h1 className="mt-4 font-display text-[52px] leading-[0.92] tracking-[-0.02em] [text-wrap:balance] sm:text-[76px]" data-testid="movie-title">
-              {m.title}
-            </h1>
+        <div className="grid gap-8 md:grid-cols-[260px_1fr] lg:grid-cols-[300px_1fr] lg:gap-12">
+          <div className="mx-auto aspect-[2/3] w-56 overflow-hidden rounded-2xl shadow-2xl shadow-black/70 ring-1 ring-white/15 md:w-full">
+            <Poster item={m} eager />
           </div>
 
-          <dl className="grid grid-cols-2 border-y border-rule sm:grid-cols-3">
-            <div className="border-r border-rule py-4 pr-4">
-              <dt className="kicker">MovieLens average</dt>
-              <dd className="mt-1 font-display text-[40px] leading-none tabular">
-                {m.mean_rating !== null ? m.mean_rating.toFixed(2) : "—"}
-                <span className="font-sans text-sm text-paper-3"> / 5</span>
-              </dd>
+          <div className="flex flex-col gap-6 md:pt-4">
+            <div className="flex flex-wrap gap-2">
+              {m.genres.map((g) => (
+                <Link
+                  key={g}
+                  to={`/discover?genre=${encodeURIComponent(g)}`}
+                  className="rounded-full px-3 py-1 text-xs font-bold text-white transition hover:brightness-110"
+                  style={{ background: genreColor(g) }}
+                >
+                  {g}
+                </Link>
+              ))}
             </div>
-            <div className="py-4 pl-4 sm:border-r sm:border-rule sm:pr-4">
-              <dt className="kicker">Ratings</dt>
-              <dd className="mt-1 font-display text-[40px] leading-none tabular">{m.n_ratings.toLocaleString()}</dd>
+            <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight [text-wrap:balance] sm:text-6xl" data-testid="movie-title">
+              {m.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-text-2">
+              <span className="text-base font-semibold text-text">{m.year ?? "Year unknown"}</span>
+              <span className="flex items-center gap-1.5">
+                <Star className="size-5 fill-gold text-gold" aria-hidden />
+                <span className="text-xl font-extrabold text-text tabular">{m.mean_rating !== null ? m.mean_rating.toFixed(2) : "—"}</span>
+                <span className="text-text-3">/ 5 MovieLens</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="size-4 text-text-3" aria-hidden />
+                <span className="font-semibold text-text tabular">{m.n_ratings.toLocaleString()}</span> ratings
+              </span>
             </div>
+
             {profileId && (
-              <div className="col-span-2 border-t border-rule py-4 sm:col-span-1 sm:border-t-0 sm:pl-4">
-                <dt className="kicker">Your rating</dt>
-                <dd className="mt-2 flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10 backdrop-blur">
+                <Button
+                  size="lg"
+                  className={`rounded-full px-6 font-bold ${m.is_favorite ? "bg-white text-black hover:bg-white/85" : ""}`}
+                  variant={m.is_favorite ? "secondary" : "primary"}
+                  onPress={() => fav.mutate(!m.is_favorite)}
+                  aria-pressed={m.is_favorite}
+                  data-testid="favorite-button"
+                >
+                  {m.is_favorite ? <Check className="size-5" /> : <Plus className="size-5" />}
+                  {m.is_favorite ? "In your list" : "Add to my list"}
+                </Button>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-text-2">Your rating</span>
                   <RatingStars value={m.user_rating} onChange={(r) => rate.mutate(r)} />
                   {m.user_rating !== null && (
-                    <button type="button" className="kicker hover:text-paper" onClick={() => unrate.mutate()}>
+                    <button type="button" className="text-xs font-semibold text-text-3 hover:text-text" onClick={() => unrate.mutate()}>
                       Clear
                     </button>
                   )}
-                </dd>
+                </div>
               </div>
             )}
-          </dl>
+            {actionError && <ErrorAlert error={actionError} />}
 
-          {profileId && (
-            <div className="flex flex-wrap items-center gap-4">
-              <Button
-                variant={m.is_favorite ? "primary" : "outline"}
-                onPress={() => fav.mutate(!m.is_favorite)}
-                aria-pressed={m.is_favorite}
-                data-testid="favorite-button"
-              >
-                {m.is_favorite ? "✓ In your list" : "+ Add to my list"}
-              </Button>
-              <span className="text-[13px] text-paper-3">Ratings and saves are folded into your recommendations immediately.</span>
-            </div>
-          )}
-          {actionError && <ErrorAlert error={actionError} />}
+            {m.tags.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-3">Community tags · MovieLens 32M</p>
+                <div className="flex flex-wrap gap-2">
+                  {m.tags.map((t) => (
+                    <span key={t} className="rounded-full bg-white/8 px-3 py-1 text-sm text-text-2 ring-1 ring-white/10">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {m.tags.length > 0 && (
-            <div>
-              <p className="kicker mb-2">Community tags · MovieLens 32M</p>
-              <p className="max-w-2xl font-display text-[20px] leading-snug text-paper-2">
-                {m.tags.map((t, i) => (
-                  <span key={t}>
-                    {i > 0 && <span className="text-paper-3"> · </span>}
-                    {t}
-                  </span>
-                ))}
-              </p>
-            </div>
-          )}
-
-          {m.n_ratings === 0 && (
-            <Notice title="Cold item">Nobody rated this film in MovieLens 1M. It can only be reached through content similarity.</Notice>
-          )}
+            {m.n_ratings === 0 && (
+              <Notice title="New to the catalogue">Nobody rated this film in MovieLens 1M, so it is reached only through content similarity.</Notice>
+            )}
+          </div>
         </div>
       </article>
 
-      <section className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="kicker">Related films</p>
-          <Segmented
-            label="Similarity type"
-            value={simMode}
-            onChange={setSimMode}
-            size="sm"
-            options={[
-              { value: "hybrid", label: "Blend" },
-              { value: "collaborative", label: "Viewers also rated" },
-              { value: "content", label: "Same vibe" },
-            ]}
-          />
-        </div>
+      <section className="flex flex-col gap-4">
+        <Segmented
+          label="Similarity type"
+          value={simMode}
+          onChange={setSimMode}
+          size="sm"
+          options={[
+            { value: "hybrid", label: "More like this" },
+            { value: "collaborative", label: "Viewers also rated" },
+            { value: "content", label: "Same vibe" },
+          ]}
+        />
         {similar.error && <ErrorAlert error={similar.error} />}
         <MovieRow
           testId="similar-row"
-          index="01"
-          title={simMode === "collaborative" ? "Viewers also rated" : simMode === "content" ? "Same vibe" : "If you liked this"}
+          title={simMode === "collaborative" ? "Viewers also rated" : simMode === "content" ? "Same vibe" : "More like this"}
           subtitle={SIM_COPY[simMode]}
           items={similar.data?.map((s) => ({ item: s.item }))}
           loading={similar.isLoading}

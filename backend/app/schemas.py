@@ -28,6 +28,7 @@ class ItemOut(BaseModel):
     n_ratings: int = 0
     mean_rating: float | None = None
     external_ids: dict[str, Any] = Field(default_factory=dict)
+    poster_url: str | None = Field(default=None, description="Locally cached poster, if any")
 
 
 class ItemDetail(ItemOut):

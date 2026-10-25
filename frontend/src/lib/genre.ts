@@ -1,32 +1,31 @@
-// Film-stock tones per genre: [background, ink, motif]. Shared by covers and onboarding tiles.
-export const GENRE_TONES: Record<string, readonly [string, string, string]> = {
-  Drama: ["#4a1d1a", "#f3e6d4", "#b0483a"],
-  Comedy: ["#7a5813", "#fbf1d6", "#e9b440"],
-  Action: ["#6a2914", "#f9e7d6", "#e46a2e"],
-  Adventure: ["#3d4318", "#f1edd6", "#aab04b"],
-  Animation: ["#1c3465", "#eaeffb", "#6890e4"],
-  "Children's": ["#23503a", "#e6f2e8", "#71c28c"],
-  Crime: ["#27221f", "#eee7dc", "#b6412f"],
-  Documentary: ["#443e33", "#efe9dd", "#bcac8c"],
-  Fantasy: ["#37254d", "#f0e8f8", "#a183d6"],
-  "Film-Noir": ["#141312", "#ece8df", "#8e8a83"],
-  Horror: ["#16211a", "#e6ece2", "#8e2421"],
-  Musical: ["#5d1f46", "#f9e7f1", "#e27db3"],
-  Mystery: ["#23253f", "#e9e9f6", "#8086cc"],
-  Romance: ["#63323b", "#f9eaeb", "#e78c98"],
-  "Sci-Fi": ["#0e373b", "#e1f1f1", "#40b8b1"],
-  Thriller: ["#1f272e", "#e7ecef", "#cfa43d"],
-  War: ["#3d3c2b", "#ecebdd", "#9f9b73"],
-  Western: ["#5c3720", "#f7eadb", "#d48c4b"],
+// Spotify-style tile colours per genre (also used for artwork fallbacks).
+export const GENRE_COLORS: Record<string, string> = {
+  Action: "#e2492f",
+  Adventure: "#d97a1c",
+  Animation: "#2d6cdf",
+  "Children's": "#1e9e6a",
+  Comedy: "#d4a017",
+  Crime: "#6b4bd1",
+  Documentary: "#4f7d6e",
+  Drama: "#b8336a",
+  Fantasy: "#8b45c9",
+  "Film-Noir": "#3d3d4d",
+  Horror: "#8c1c23",
+  Musical: "#d6488c",
+  Mystery: "#3c4fb0",
+  Romance: "#e0507a",
+  "Sci-Fi": "#0f8c99",
+  Thriller: "#4a5a6a",
+  War: "#6d6a3a",
+  Western: "#a5632d",
 };
 
-const FALLBACK = ["#2a2622", "#eee7dc", "#9a8f7d"] as const;
-
-export function toneFor(genres: string[]) {
-  return GENRE_TONES[genres[0] ?? ""] ?? FALLBACK;
+export function genreColor(genres: string[] | string | undefined): string {
+  const g = Array.isArray(genres) ? genres[0] : genres;
+  return (g && GENRE_COLORS[g]) || "#3a3a4a";
 }
 
-/** Small deterministic hash (stable across sessions) used to vary cover layouts. */
+/** Small deterministic hash (stable across sessions) used to vary fallback artwork. */
 export function hash(n: number): number {
   let x = (n ^ 0x9e3779b9) >>> 0;
   x = Math.imul(x ^ (x >>> 16), 0x85ebca6b) >>> 0;
@@ -34,4 +33,4 @@ export function hash(n: number): number {
   return (x ^ (x >>> 16)) >>> 0;
 }
 
-export const fmtCount = (n: number) => n.toLocaleString("en-US");
+export const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n));

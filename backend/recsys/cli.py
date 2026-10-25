@@ -45,6 +45,14 @@ def download_models() -> None:
     download_model(get_settings())
 
 
+@app.command("download-posters")
+def download_posters() -> None:
+    """Cache film posters from Wikipedia (one time, no API key; needs processed data)."""
+    from recsys.data.posters import download_posters as run
+
+    typer.echo(json.dumps(run(get_settings())))
+
+
 @app.command()
 def preprocess() -> None:
     """Validate, index, split and save the dataset; write the EDA report."""
@@ -135,7 +143,7 @@ def pipeline(
     quick: Annotated[bool, typer.Option(help="Quick training (smoke test)")] = False,
     skip_download: Annotated[bool, typer.Option(help="Use already downloaded files")] = False,
 ) -> None:
-    """download -> download-models -> preprocess -> train -> seed-db, in order."""
+    """download -> download-models -> preprocess -> download-posters -> train -> seed-db, in order."""
     if not skip_download:
         download()
         try:
@@ -143,6 +151,11 @@ def pipeline(
         except Exception as exc:  # embeddings are optional; the rest of the pipeline still works
             log.warning("Embedding model download failed (%s); continuing without semantic features.", exc)
     preprocess()
+    if not skip_download:
+        try:
+            download_posters()
+        except Exception as exc:  # posters are optional; the UI falls back to generated artwork
+            log.warning("Poster download failed (%s); continuing with generated artwork.", exc)
     train(quick=quick, only=None)
     seed_db()
 
