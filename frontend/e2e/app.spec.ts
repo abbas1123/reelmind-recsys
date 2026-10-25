@@ -52,6 +52,11 @@ test("search, open a movie, rate and favorite it, see it in My list", async ({ p
   await useProfile(page, id);
   await page.goto("/me"); // cache the empty lists first: they must refresh after client-side navigation
   await page.getByRole("link", { name: "Discover", exact: true }).click();
+  // Re-clicking "Discover" while a genre is selected must reset the filter, not just the URL.
+  await page.getByRole("button", { name: /^Western/ }).click();
+  await expect(page.getByRole("heading", { name: "Most rated: Western" })).toBeVisible();
+  await page.getByRole("link", { name: "Discover", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Trending at the end of the dataset" })).toBeVisible();
   await page.getByTestId("search-input").fill("toy story");
   await expect(page.getByTestId("search-summary")).toContainText("matches");
   const first = page.getByTestId("movie-card").first();

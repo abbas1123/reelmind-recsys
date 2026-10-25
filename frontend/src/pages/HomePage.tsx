@@ -123,6 +123,7 @@ export default function HomePage() {
         />
       ))}
 
+      {topRated.error && <ErrorAlert error={topRated.error} onRetry={() => topRated.refetch()} />}
       <MovieRow
         index={String(rest.length + 2).padStart(2, "0")}
         testId="section-top-rated"

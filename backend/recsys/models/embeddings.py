@@ -27,7 +27,15 @@ def local_model_dir(settings: Settings) -> Path:
     return settings.p.hf_cache_dir / _slug(settings.embeddings.model_name)
 
 
+def _offline() -> None:
+    """Hugging Face reads these flags once, at import time: set them before the first import."""
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+
 def is_available(settings: Settings) -> bool:
+    if (local_model_dir(settings) / "config.json").exists():
+        _offline()
     try:
         import sentence_transformers  # noqa: F401
     except ImportError:
@@ -73,8 +81,7 @@ _MODEL_CACHE: dict[str, object] = {}
 
 def load_model(settings: Settings):
     """Load the cached model strictly offline."""
-    os.environ.setdefault("HF_HUB_OFFLINE", "1")
-    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+    _offline()
     path = local_model_dir(settings)
     if not (path / "config.json").exists():
         raise FileNotFoundError(f"Embedding model not cached at {path}. Run `uv run recsys download-models`.")

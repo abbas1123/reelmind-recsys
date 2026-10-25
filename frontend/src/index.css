@@ -11,8 +11,8 @@
   --ink-raised: #ebe4d6;
   --ink-sunken: #e4dccb;
   --paper: #1b1813;
-  --paper-2: #5d564a;
-  --paper-3: #8a8173;
+  --paper-2: #4a443a;
+  --paper-3: #655d50; /* >= 4.5:1 on ink and ink-raised (WCAG AA small text) */
   --rule: #d6cdbb;
   --rule-strong: #b9ae99;
   --amber: #a5600a;
@@ -37,7 +37,7 @@
   --ink-sunken: #0c0b09;
   --paper: #ede5d6;
   --paper-2: #b3a995;
-  --paper-3: #7d7465;
+  --paper-3: #8f8676; /* >= 4.5:1 on ink and ink-raised (WCAG AA small text) */
   --rule: #2b2721;
   --rule-strong: #443e34;
   --amber: #e9a646;

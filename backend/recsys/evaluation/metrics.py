@@ -13,7 +13,11 @@ from scipy import sparse
 
 # ----------------------------------------------------------------- top-k helpers
 def top_k(scores: np.ndarray, k: int) -> np.ndarray:
-    """Indices of the k highest scores per row, best first. Ties are broken by lower index."""
+    """Indices of the k highest scores per row, best first.
+
+    Within the selected k, equal scores are ordered by lower index; which of several items tied exactly at
+    the k-th score gets selected is up to ``argpartition``.
+    """
     n_items = scores.shape[1]
     k = min(k, n_items)
     part = np.argpartition(-scores, kth=k - 1, axis=1)[:, :k]

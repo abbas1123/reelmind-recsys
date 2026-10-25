@@ -1,7 +1,7 @@
 import { Button, Input, Label, SearchField, TextField } from "@heroui/react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigationType, useSearchParams } from "react-router";
 import { api } from "../api/client";
 import { FilterList, Segmented } from "../components/Controls";
 import { ErrorAlert } from "../components/Feedback";
@@ -33,6 +33,17 @@ export default function DiscoverPage() {
   const query = useDebounced(q.trim());
   const health = useQuery({ queryKey: ["health"], queryFn: api.health });
   const genres = useQuery({ queryKey: ["genres"], queryFn: api.genres });
+
+  // Links and back/forward to /discover (same page, new URL) must reset the filters; our own URL updates use
+  // `replace`, so they are skipped and never overwrite what the user is typing.
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  useEffect(() => {
+    if (navigationType === "REPLACE") return;
+    setQ(params.get("q") ?? "");
+    setMode((params.get("mode") as Mode) ?? "keyword");
+    setGenre(params.get("genre"));
+  }, [location.key]);
 
   useEffect(() => {
     const next: Record<string, string> = {};
