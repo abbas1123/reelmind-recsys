@@ -57,6 +57,15 @@ npm run dev                         # http://127.0.0.1:5173 (/api → 8010 proxy
 
 Hamısı bir komanda ilə: `uv run recsys pipeline` (download → models → preprocess → posters → train → seed-db).
 
+## Canlı demo linki (müvəqqəti)
+
+```powershell
+winget install --id Cloudflare.cloudflared       # bir dəfə
+powershell -ExecutionPolicy Bypass -File scripts\demo.ps1
+```
+
+Skript production build-i (port 4173) və ayrıca demo backend-i (port 8011, `data/demo.db`) qaldırır, sonra Cloudflare quick tunnel açır və `https://....trycloudflare.com` linkini çap edir. Link yalnız pəncərə açıq və kompüter işləyərkən aktivdir, hər dəfə yeni ünvan verilir. Ziyarətçilər profil yarada və reytinq verə bilər, amma sənin `data/app.db` bazana toxunmurlar. Ctrl+C hamısını dayandırır.
+
 ## Layihə strukturu
 
 ```

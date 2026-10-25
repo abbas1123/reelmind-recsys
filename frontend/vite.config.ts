@@ -15,7 +15,11 @@ export default defineConfig({
   },
   build: { chunkSizeWarningLimit: 800 }, // HeroUI + React Aria main chunk; dashboard is split out
   preview: {
+    host: "127.0.0.1",
     port: 4173,
+    strictPort: true,
+    // Live demo (scripts\demo.ps1): the build is served through a Cloudflare quick tunnel.
+    allowedHosts: [".trycloudflare.com"],
     proxy: { "/api": { target: API, changeOrigin: true } },
   },
 });
