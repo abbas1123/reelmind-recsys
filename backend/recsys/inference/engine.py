@@ -228,6 +228,8 @@ class RecommendationEngine:
         top = np.argsort(-scores, kind="stable")[:k]
         out = []
         for i in top:
+            if scores[i] <= 0:  # no evidence left (e.g. collaborative mode for an unrated film): don't pad
+                break           # the list with the first catalog ids at score 0
             dominant = max(normed, key=lambda name: normed[name][i])
             out.append((int(self._idx_to_item[i]), float(scores[i]), dominant))
         return out

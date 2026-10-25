@@ -41,12 +41,17 @@ test("new user: onboarding -> cold start -> ratings change recommendations", asy
   const top = page.getByTestId("section-top_picks").getByTestId("movie-card");
   await expect(top).toHaveCount(20);
   await expect(page.getByTestId("section-because_you_liked")).toBeVisible();
+
+  // Back on the profile picker the new profile and its ratings are listed (the list used to come from the cache).
+  await page.getByRole("button", { name: /Switch profile/ }).click();
+  await expect(page.getByTestId("profile-tile").filter({ hasText: name })).toContainText("3 rated");
 });
 
 test("search, open a movie, rate and favorite it, see it in My list", async ({ page, request }) => {
   const id = await createProfile(request, unique("E2E search"));
   await useProfile(page, id);
-  await page.goto("/discover");
+  await page.goto("/me"); // cache the empty lists first: they must refresh after client-side navigation
+  await page.getByRole("link", { name: "Discover", exact: true }).click();
   await page.getByTestId("search-input").fill("toy story");
   await expect(page.getByTestId("search-summary")).toContainText("matches");
   const first = page.getByTestId("movie-card").first();
@@ -60,10 +65,12 @@ test("search, open a movie, rate and favorite it, see it in My list", async ({ p
   await expect(page.getByTestId("favorite-button")).toContainText("In your list");
   await expect(page.getByTestId("similar-row").getByTestId("movie-card").first()).toBeVisible();
 
-  await page.goto("/me");
+  await page.getByRole("link", { name: "My list", exact: true }).click();
   await expect(page.getByTestId("favorites-grid")).toContainText("Toy Story");
   await page.getByRole("tab", { name: /Ratings/ }).click();
   await expect(page.getByRole("radiogroup", { name: /Your rating for Toy Story/ })).toBeVisible();
+  await page.getByRole("tab", { name: /History/ }).click();
+  await expect(page.getByRole("tabpanel")).toContainText("rate 4★");
 
   // One visit to the film page is one "view" in the history (React StrictMode used to log it twice).
   const history = await (await request.get(`${API}/users/${id}/history`)).json();

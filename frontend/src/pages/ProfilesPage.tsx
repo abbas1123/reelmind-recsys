@@ -15,7 +15,8 @@ export default function ProfilesPage() {
   const { select, profileId } = useProfile();
   const [name, setName] = useState("");
   const [mlId, setMlId] = useState("1");
-  const users = useQuery({ queryKey: ["users"], queryFn: api.users });
+  // Always refetch on open: profiles and their counts change on other pages without touching this cache.
+  const users = useQuery({ queryKey: ["users"], queryFn: api.users, staleTime: 0 });
   const health = useQuery({ queryKey: ["health"], queryFn: api.health });
 
   const enter = (u: User) => {

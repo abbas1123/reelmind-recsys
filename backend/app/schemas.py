@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Literal
+from datetime import UTC, datetime
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+
+
+def _as_utc(value: datetime) -> datetime:
+    """SQLite drops the timezone of the stored UTC timestamps; without an offset browsers read them as local time."""
+    return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+UtcDatetime = Annotated[datetime, AfterValidator(_as_utc)]
 
 
 class ItemOut(BaseModel):
@@ -60,7 +68,7 @@ class UserOut(BaseModel):
     display_name: str
     ml_user_id: int | None
     onboarding_done: bool
-    created_at: datetime
+    created_at: UtcDatetime
     n_ratings: int
     n_favorites: int
     preferred_genres: list[str]
@@ -77,12 +85,12 @@ class RatingIn(BaseModel):
 class RatingOut(BaseModel):
     item: ItemOut
     rating: float
-    created_at: datetime
+    created_at: UtcDatetime
 
 
 class FavoriteOut(BaseModel):
     item: ItemOut
-    created_at: datetime
+    created_at: UtcDatetime
 
 
 class InteractionIn(BaseModel):
@@ -97,7 +105,7 @@ class InteractionOut(BaseModel):
     item: ItemOut | None
     query: str | None
     value: float | None
-    created_at: datetime
+    created_at: UtcDatetime
 
 
 class SearchResponse(BaseModel):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -164,7 +165,21 @@ def test_item_detail_and_similar(client):
     assert item["title"] == "The Matrix" and item["year"] == 1999 and item["n_ratings"] > 1000
     sims = client.get("/api/items/2571/similar", params={"k": 10}).json()
     assert len(sims) == 10 and 2571 not in [s["item"]["id"] for s in sims]
+    assert all(s["score"] > 0 for s in sims)
     assert client.get("/api/items/99999999").status_code == 404
+
+
+def test_timestamps_carry_utc_offset(client):
+    # SQLite hands back naive datetimes; without an offset the browser shows the stored UTC time as local time.
+    user = _new_user(client)
+    stamps = [
+        user["created_at"],
+        client.put(f"/api/users/{user['id']}/ratings/1", json={"rating": 4}).json()["created_at"],
+        client.put(f"/api/users/{user['id']}/favorites/2").json()["created_at"],
+        client.get(f"/api/users/{user['id']}/ratings").json()[0]["created_at"],
+        client.get(f"/api/users/{user['id']}/history").json()[0]["created_at"],
+    ]
+    assert all(datetime.fromisoformat(s).utcoffset() == timedelta(0) for s in stamps), stamps
 
 
 def test_discovery_endpoints(client):

@@ -96,3 +96,5 @@ def test_genre_filter_and_cold_items(engine, processed):
     unrated = sorted(set(processed.items["item_id"]) - set(processed.interactions["item_id"]))
     sims = engine.similar_items(unrated[0], k=5, mode="content")
     assert len(sims) == 5  # an item nobody rated still has content neighbours
+    # ...but no collaborative ones: the list must be empty, not the first catalog ids padded in at score 0.
+    assert engine.similar_items(unrated[0], k=5, mode="collaborative") == []

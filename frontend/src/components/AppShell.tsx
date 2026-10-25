@@ -76,8 +76,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => navigate("/")}
               className="group flex items-center gap-2 border-l border-rule pl-4 text-left"
-              aria-label="Switch profile"
             >
+              {/* No aria-label: it replaced the visible text, so screen readers never heard the current profile. */}
+              <span className="sr-only">Switch profile, </span>
               <span className="kicker hidden md:inline">Viewing as</span>
               <span className="max-w-40 truncate text-[13px] text-paper group-hover:text-amber" data-testid="current-profile">
                 {profile?.display_name ?? "Choose profile"}

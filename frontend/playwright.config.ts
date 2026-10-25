@@ -25,7 +25,9 @@ export default defineConfig({
     {
       command: "uv run --project ../backend recsys serve --port 8010",
       url: "http://127.0.0.1:8010/api/health",
-      reuseExistingServer: !process.env.CI,
+      // Never reuse: an already running dev backend (scripts\dev.ps1) serves data/app.db, and the tests would
+      // write their profiles into it. Playwright stops with "already used" instead; stop the dev server first.
+      reuseExistingServer: false,
       timeout: 120_000,
       env: { RECSYS_PATHS__DB_PATH: "data/e2e.db" },
       stdout: "pipe",

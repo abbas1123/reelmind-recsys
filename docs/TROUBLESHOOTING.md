@@ -5,7 +5,14 @@
 Korporativ şəbəkə TLS trafikini öz sertifikatı ilə yenidən imzalayır və bu sertifikat Python-un `certifi` siyahısında yoxdur. Layihə `truststore` ilə əməliyyat sisteminin sertifikat anbarını istifadə edir (yoxlama söndürülmür). Xəta davam edərsə:
 
 - Brauzerdə `https://files.grouplens.org/datasets/movielens/` açılırmı, yoxlayın.
-- Alternativ: `ml-1m.zip` və `ml-32m.zip` fayllarını əl ilə yükləyib `data/raw/` qovluğuna qoyun, sonra `uv run recsys download` (MD5 yoxlanılır, yenidən yüklənmir).
+- Alternativ: `ml-1m.zip` və `ml-32m.zip` fayllarını brauzerlə yükləyib `data/raw/` qovluğuna qoyun və özünüz açın. `uv run recsys download` burada kömək etmir: hər dəfə əvvəlcə `.md5` faylını şəbəkədən oxuyur və eyni xəta ilə dayanır. MD5-i əl ilə müqayisə edin (dəyərlər [DATASET.md](DATASET.md)-də), sonra yükləmə addımı olmadan davam edin (layihə qovluğundan):
+
+```powershell
+(Get-FileHash data\raw\ml-1m.zip -Algorithm MD5).Hash; (Get-FileHash data\raw\ml-32m.zip -Algorithm MD5).Hash
+Expand-Archive data\raw\ml-1m.zip -DestinationPath data\raw
+Expand-Archive data\raw\ml-32m.zip -DestinationPath data\raw
+cd backend; uv run recsys pipeline --skip-download   # embedding modeli ayrıca: uv run recsys download-models
+```
 
 ## Embedding modeli yüklənmir
 
@@ -49,7 +56,7 @@ npx playwright install chromium; $env:PW_CHANNEL = "chromium"; npm run test:e2e
 
 ## Port məşğuldur
 
-Backend 8010, frontend 5173 portunu istifadə edir (`strictPort`). Başqa port: `uv run recsys serve --port 8020` və `$env:VITE_API_PROXY = "http://127.0.0.1:8020"; npm run dev` (PowerShell).
+Backend 8010, frontend 5173 portunu istifadə edir (`strictPort`). `npm run test:e2e` öz backend-ini `data/e2e.db` ilə qaldırır, ona görə `scripts\dev.ps1` işləyirsə Playwright "is already used" xətası verir — əvvəlcə dev serveri dayandırın (əks halda test profilləri `data/app.db`-yə yazılardı). Başqa port: `uv run recsys serve --port 8020` və `$env:VITE_API_PROXY = "http://127.0.0.1:8020"; npm run dev` (PowerShell).
 
 ## Datanı sıfırdan qurmaq
 

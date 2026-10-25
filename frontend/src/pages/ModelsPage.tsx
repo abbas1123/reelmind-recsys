@@ -278,35 +278,37 @@ function Report({ r, eda }: { r: EvaluationReport; eda: EdaSummary | undefined }
         </div>
       </Figure>
 
-      <div className="grid gap-14 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-14 lg:grid-cols-2">
         <Figure n={2} kind="Table" title="Rating prediction" caption="Explicit models are tuned on validation RMSE. Lower RMSE does not mean better top-N ranking — compare with Table 1.">
-          <table className="w-full">
-            <thead className="border-b border-rule-strong">
-              <tr>
-                <th className={th}>Model</th>
-                <th className={th}>val RMSE</th>
-                <th className={th}>test RMSE</th>
-                <th className={th}>test MAE</th>
-                <th className={th}>RMSE warm</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order
-                .filter((n) => models[n].rating)
-                .map((n) => {
-                  const rt = models[n].rating!;
-                  return (
-                    <tr key={n} className="border-b border-rule">
-                      <td className="py-2.5 pr-4 text-[13.5px] font-medium">{n}</td>
-                      <td className={td}>{fmt(rt.val.rmse)}</td>
-                      <td className={td}>{fmt(rt.test.rmse)}</td>
-                      <td className={td}>{fmt(rt.test.mae)}</td>
-                      <td className={td}>{fmt(rt.test.rmse_warm)}</td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-rule-strong">
+                <tr>
+                  <th className={th}>Model</th>
+                  <th className={th}>val RMSE</th>
+                  <th className={th}>test RMSE</th>
+                  <th className={th}>test MAE</th>
+                  <th className={th}>RMSE warm</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order
+                  .filter((n) => models[n].rating)
+                  .map((n) => {
+                    const rt = models[n].rating!;
+                    return (
+                      <tr key={n} className="border-b border-rule">
+                        <td className="py-2.5 pr-4 text-[13.5px] font-medium">{n}</td>
+                        <td className={td}>{fmt(rt.val.rmse)}</td>
+                        <td className={td}>{fmt(rt.test.rmse)}</td>
+                        <td className={td}>{fmt(rt.test.mae)}</td>
+                        <td className={td}>{fmt(rt.test.rmse_warm)}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
         </Figure>
 
         <Figure
@@ -320,34 +322,36 @@ function Report({ r, eda }: { r: EvaluationReport; eda: EdaSummary | undefined }
             </>
           }
         >
-          <table className="w-full">
-            <thead className="border-b border-rule-strong">
-              <tr>
-                <th className={th}>Bucket</th>
-                <th className={th}>History</th>
-                <th className={th}>w_cf</th>
-                <th className={th}>w_cb</th>
-                <th className={th}>w_pop</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hybridParams?.weights &&
-                Object.entries(hybridParams.weights).map(([b, w]) => (
-                  <tr key={b} className="border-b border-rule">
-                    <td className="py-2.5 pr-4 text-[13.5px] font-medium">{b}</td>
-                    <td className={`${td} text-paper-3`}>{b === "cold" ? "0" : b === "light" ? "1–4" : "≥ 5"}</td>
-                    {(["cf", "cb", "pop"] as const).map((c) => (
-                      <td key={c} className={td}>
-                        <span className="inline-flex items-center gap-2">
-                          <span className="inline-block h-1.5 bg-amber" style={{ width: `${w[c] * 48}px` }} aria-hidden />
-                          {w[c].toFixed(1)}
-                        </span>
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-rule-strong">
+                <tr>
+                  <th className={th}>Bucket</th>
+                  <th className={th}>History</th>
+                  <th className={th}>w_cf</th>
+                  <th className={th}>w_cb</th>
+                  <th className={th}>w_pop</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hybridParams?.weights &&
+                  Object.entries(hybridParams.weights).map(([b, w]) => (
+                    <tr key={b} className="border-b border-rule">
+                      <td className="py-2.5 pr-4 text-[13.5px] font-medium">{b}</td>
+                      <td className={`${td} text-paper-3`}>{b === "cold" ? "0" : b === "light" ? "1–4" : "≥ 5"}</td>
+                      {(["cf", "cb", "pop"] as const).map((c) => (
+                        <td key={c} className={td}>
+                          <span className="inline-flex items-center gap-2">
+                            <span className="inline-block h-1.5 bg-amber" style={{ width: `${w[c] * 48}px` }} aria-hidden />
+                            {w[c].toFixed(1)}
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         </Figure>
       </div>
 

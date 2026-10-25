@@ -13,9 +13,10 @@ const tabClass =
 
 export default function MePage() {
   const { profileId, profile } = useProfile();
-  const ratings = useQuery({ queryKey: ["ratings", profileId], queryFn: () => api.ratings(profileId!) });
-  const favorites = useQuery({ queryKey: ["favorites", profileId], queryFn: () => api.favorites(profileId!) });
-  const history = useQuery({ queryKey: ["history", profileId], queryFn: () => api.history(profileId!, 100) });
+  // Always refetch on open: views, searches and onboarding ratings are logged elsewhere without invalidating these.
+  const ratings = useQuery({ queryKey: ["ratings", profileId], queryFn: () => api.ratings(profileId!), staleTime: 0 });
+  const favorites = useQuery({ queryKey: ["favorites", profileId], queryFn: () => api.favorites(profileId!), staleTime: 0 });
+  const history = useQuery({ queryKey: ["history", profileId], queryFn: () => api.history(profileId!, 100), staleTime: 0 });
 
   return (
     <div className="flex flex-col gap-10">
