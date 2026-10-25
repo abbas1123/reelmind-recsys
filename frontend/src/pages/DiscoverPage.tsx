@@ -120,12 +120,20 @@ export default function DiscoverPage() {
       {query ? (
         <section aria-label="Search results" className="flex flex-col gap-6">
           <SectionHeading
-            title={search.data ? `${search.data.total} results` : "Searching…"}
+            title={
+              search.data
+                ? search.data.mode === "semantic"
+                  ? `Top ${search.data.results.length} by meaning`
+                  : `${search.data.total} results`
+                : "Searching…"
+            }
             aside={<span className="kicker">{mode === "semantic" ? "all-MiniLM-L6-v2 · on this machine" : "title match + TF-IDF"}</span>}
           >
             <span data-testid="search-summary">
               {search.data
-                ? `${search.data.total} matches for “${search.data.query}” (${search.data.mode === "semantic" ? "semantic, local embeddings" : "keyword"})`
+                ? search.data.mode === "semantic"
+                  ? `Closest films to “${search.data.query}” (semantic, local embeddings — every film is scored, so there is no match count)`
+                  : `${search.data.total} matches for “${search.data.query}” (keyword)`
                 : ""}
             </span>
           </SectionHeading>
