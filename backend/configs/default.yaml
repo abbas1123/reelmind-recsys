@@ -1,0 +1,100 @@
+# Central configuration for the recommendation pipeline.
+# Paths are relative to the project root (the folder that contains `backend/`).
+# Any value can be overridden with environment variables, e.g. RECSYS_SEED=7.
+
+seed: 42
+
+paths:
+  data_dir: data
+  raw_dir: data/raw
+  processed_dir: data/processed
+  artifacts_dir: artifacts
+  models_dir: artifacts/models
+  reports_dir: artifacts/reports
+  embeddings_dir: artifacts/embeddings
+  hf_cache_dir: artifacts/hf_cache
+  db_path: data/app.db
+
+dataset:
+  name: movielens-1m
+  # Content enrichment: user tags + external ids from MovieLens 32M (links.csv, tags.csv, movies.csv).
+  enrich_with_ml32m: true
+  # Tags used by fewer than this many distinct ml-32m users for a movie are dropped (noise filter).
+  min_tag_users: 2
+  max_tags_per_item: 25
+
+validation:
+  rating_min: 1
+  rating_max: 5
+  # MovieLens 1M was collected 2000-2003; anything outside this window is treated as invalid.
+  ts_min: "1995-01-01"
+  ts_max: "2004-01-01"
+
+split:
+  # global_temporal: one time cut for everybody (no future leakage across users).
+  # per_user_temporal: each user's latest interactions go to val/test (robustness check only).
+  strategy: global_temporal
+  val_fraction: 0.10
+  test_fraction: 0.10
+
+evaluation:
+  relevance_threshold: 4      # a held-out rating >= 4 counts as relevant
+  k_values: [10, 20]
+  primary_metric: ndcg@10
+  bootstrap_samples: 1000
+  light_user_max_train: 20     # segment boundary for "light" vs "heavy" users
+  cold_start_reveal: [1, 3, 5] # history sizes revealed for simulated cold users
+  eval_batch_size: 1024
+
+# Hyper-parameter grids searched on the validation split (primary metric above).
+# Grids were widened twice where the best validation value sat on a grid edge
+# (the test split is never used for these decisions).
+models:
+  popularity:
+    # Recency half-life measured in interactions (0 = all-time counts); see models/popularity.py.
+    half_life_events: [0, 2500, 5000, 10000, 25000, 50000, 100000]
+  user_knn:
+    k: [400, 800, 1600, 3200, 0]       # 0 = every training user
+  item_knn:
+    k: [400, 800, 1600]
+    shrink: [50, 200, 500, 1000]
+  pure_svd:
+    factors: [2, 4, 8, 16, 32]
+  ials:
+    factors: [16, 32, 64]
+    reg: [100.0, 200.0, 500.0, 1000.0]
+    alpha: [2.0, 5.0]
+    iterations: [15]
+  ease:
+    lambda_: [1000, 2000, 4000, 8000, 16000, 32000]
+  # Explicit-rating models are selected by validation RMSE (see training/train.py).
+  bias_baseline:
+    reg_item: [2, 5, 10, 25]
+    reg_user: [5, 10, 25]
+  biased_mf:
+    factors: [32, 64, 128]
+    reg: [0.02, 0.05, 0.1]
+    iterations: [12]
+  content_tfidf:
+    k: [10, 25, 50, 100]
+    weighting: [binary, centered]
+  content_embedding:
+    k: [200, 400, 800, 0]
+    weighting: [binary, centered]
+
+hybrid:
+  # Weight grid (step) for w_cf + w_cb + w_pop = 1, searched on validation.
+  weight_step: 0.1
+  # History-length buckets: 0 -> onboarding cold start, [1, warm_min) -> light, >= warm_min -> warm.
+  warm_min_history: 5
+  # Untuned UI heuristic: additive boost for onboarding genres when history is short.
+  genre_pref_boost: 0.15
+
+embeddings:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  device: auto                 # auto | cpu | cuda
+  batch_size: 128
+
+api:
+  cors_origins: ["http://localhost:5173", "http://127.0.0.1:5173"]
+  default_k: 20

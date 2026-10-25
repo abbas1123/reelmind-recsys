@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# Local data (GroupLens license forbids redistribution)
+data/raw/
+data/processed/
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Generated artifacts (reproducible with `recsys pipeline`)
+artifacts/models/
+artifacts/embeddings/
+artifacts/hf_cache/
+artifacts/preprocessing/
+# Reports are small and useful to review; keep them tracked
+!artifacts/reports/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local logs
+artifacts/logs/
+*.tsbuildinfo
+.claude/scheduled_tasks.lock

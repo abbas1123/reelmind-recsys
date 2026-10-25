@@ -1,0 +1,126 @@
+{
+  "n_users": 6040,
+  "n_items_catalog": 3883,
+  "n_items_rated": 3706,
+  "n_items_unrated": 177,
+  "n_interactions": 1000209,
+  "density": 0.04264679797998748,
+  "sparsity": 0.9573532020200125,
+  "rating_mean": 3.581564426422119,
+  "rating_std": 1.1171019077301025,
+  "rating_distribution": {
+    "1": 56174,
+    "2": 107557,
+    "3": 261197,
+    "4": 348971,
+    "5": 226310
+  },
+  "positive_share": 0.5751607913945985,
+  "ratings_per_user": {
+    "min": 20,
+    "median": 96.0,
+    "mean": 165.5975165562914,
+    "max": 2314
+  },
+  "ratings_per_item": {
+    "min": 1,
+    "median": 123.5,
+    "mean": 269.88909875876953,
+    "max": 3428
+  },
+  "item_popularity_gini": 0.6502651046369113,
+  "top_1pct_items_share": 0.08731175184386464,
+  "genre_counts": {
+    "Drama": 1603,
+    "Comedy": 1200,
+    "Action": 503,
+    "Thriller": 492,
+    "Romance": 471,
+    "Horror": 343,
+    "Adventure": 283,
+    "Sci-Fi": 276,
+    "Children's": 251,
+    "Crime": 211,
+    "War": 143,
+    "Documentary": 127,
+    "Musical": 114,
+    "Mystery": 106,
+    "Animation": 105,
+    "Fantasy": 68,
+    "Western": 68,
+    "Film-Noir": 44
+  },
+  "time_range": {
+    "min": "2000-04-25",
+    "max": "2003-02-28"
+  },
+  "ratings_by_year": {
+    "2000": 904757,
+    "2001": 68058,
+    "2002": 24046,
+    "2003": 3348
+  },
+  "items_with_tags": 2550,
+  "split_primary": {
+    "train": {
+      "interactions": 800164,
+      "users": 5400,
+      "items": 3662,
+      "ts_min": "2000-04-25",
+      "ts_max": "2000-12-02"
+    },
+    "val": {
+      "interactions": 100024,
+      "users": 1134,
+      "items": 3305,
+      "ts_min": "2000-12-02",
+      "ts_max": "2000-12-29",
+      "warm_users": 523,
+      "cold_users": 611,
+      "new_items": 16,
+      "relevant_interactions": 57812
+    },
+    "test": {
+      "interactions": 100021,
+      "users": 1209,
+      "items": 3407,
+      "ts_min": "2000-12-29",
+      "ts_max": "2003-02-28",
+      "warm_users": 1180,
+      "cold_users": 29,
+      "new_items": 28,
+      "relevant_interactions": 54452
+    }
+  },
+  "split_secondary": {
+    "train": {
+      "interactions": 800309,
+      "users": 6040,
+      "items": 3667,
+      "ts_min": "2000-04-25",
+      "ts_max": "2003-02-24"
+    },
+    "val": {
+      "interactions": 99950,
+      "users": 6040,
+      "items": 3366,
+      "ts_min": "2000-04-25",
+      "ts_max": "2003-02-25",
+      "warm_users": 6040,
+      "cold_users": 0,
+      "new_items": 17,
+      "relevant_interactions": 53166
+    },
+    "test": {
+      "interactions": 99950,
+      "users": 6040,
+      "items": 3442,
+      "ts_min": "2000-04-25",
+      "ts_max": "2003-02-28",
+      "warm_users": 6040,
+      "cold_users": 0,
+      "new_items": 22,
+      "relevant_interactions": 51326
+    }
+  }
+}

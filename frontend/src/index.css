@@ -1,0 +1,205 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ tokens
+   "Cinematheque" palette: warm black ink, paper text, one marquee-amber accent.
+   Light theme is "paper": the same system printed on warm stock. */
+:root {
+  --ink: #f3eee4;
+  --ink-raised: #ebe4d6;
+  --ink-sunken: #e4dccb;
+  --paper: #1b1813;
+  --paper-2: #5d564a;
+  --paper-3: #8a8173;
+  --rule: #d6cdbb;
+  --rule-strong: #b9ae99;
+  --amber: #a5600a;
+  --amber-ink: #fff8ec;
+  --signal: #b23a2c;
+
+  /* charts — validated on #f4efe6 (dataviz validator, all checks pass) */
+  --viz-surface: #f4efe6;
+  --viz-text: #1b1813;
+  --viz-text-2: #5d564a;
+  --viz-grid: #ddd4c3;
+  --viz-1: #a76100;
+  --viz-2: #00836b;
+  --viz-3: #6f57ab;
+  --viz-4: #af3d34;
+}
+
+:root.dark,
+:root[data-theme="dark"] {
+  --ink: #12100d;
+  --ink-raised: #1a1713;
+  --ink-sunken: #0c0b09;
+  --paper: #ede5d6;
+  --paper-2: #b3a995;
+  --paper-3: #7d7465;
+  --rule: #2b2721;
+  --rule-strong: #443e34;
+  --amber: #e9a646;
+  --amber-ink: #1c1206;
+  --signal: #e2614a;
+
+  /* charts — validated on #15130f (dataviz validator, all checks pass) */
+  --viz-surface: #15130f;
+  --viz-text: #ede5d6;
+  --viz-text-2: #b3a995;
+  --viz-grid: #2b2721;
+  --viz-1: #c68206;
+  --viz-2: #00948e;
+  --viz-3: #8c76c6;
+  --viz-4: #c74c41;
+}
+
+/* HeroUI v3 design tokens mapped onto the palette (unlayered, so they win over the theme layer). */
+:root,
+:root.dark,
+:root[data-theme="dark"] {
+  --background: var(--ink);
+  --foreground: var(--paper);
+  --surface: var(--ink-raised);
+  --surface-foreground: var(--paper);
+  --surface-secondary: var(--ink-sunken);
+  --surface-tertiary: var(--rule);
+  --overlay: var(--ink-raised);
+  --overlay-foreground: var(--paper);
+  --muted: var(--paper-3);
+  --default: var(--ink-sunken);
+  --default-foreground: var(--paper);
+  --accent: var(--amber);
+  --accent-foreground: var(--amber-ink);
+  --danger: var(--signal);
+  --border: var(--rule);
+  --separator: var(--rule);
+  --focus: var(--amber);
+  --link: var(--paper);
+  --field-background: transparent;
+  --field-foreground: var(--paper);
+  --field-placeholder: var(--paper-3);
+  --field-border: var(--rule-strong);
+  --field-border-width: 1px;
+  --segment: var(--ink-raised);
+  --segment-foreground: var(--paper);
+  --radius: 0.25rem;
+  --field-radius: 0.25rem;
+}
+
+@theme {
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Tight Variable", "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-ink-sunken: var(--ink-sunken);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-signal: var(--signal);
+}
+
+/* ------------------------------------------------------------------ base */
+html,
+body {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Film grain over everything (pure CSS/SVG, no image request). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+::selection {
+  background: var(--amber);
+  color: var(--amber-ink);
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-3);
+}
+
+.smallcaps {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.scroll-row {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
+}
+.scroll-row > * {
+  scroll-snap-align: start;
+}
+
+.cover-grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
+  mix-blend-mode: multiply;
+}
+
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.25s ease;
+}
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* HeroUI component shapes aligned with the editorial system (square-ish, hairline). */
+.button {
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.button--outline {
+  border-color: var(--rule-strong);
+}
