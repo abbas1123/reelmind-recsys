@@ -51,7 +51,7 @@ s(u,i) = w_cf·minmax(s_cf) + w_cb·minmax(s_cb) + w_pop·minmax(s_pop)
 bucket: 0 reytinq → cold | 1..4 → light | ≥5 → warm   (hər bucket-in öz çəkiləri)
 ```
 
-- `warm` çəkiləri warm validation istifadəçilərində, `light` çəkiləri simulyasiya olunmuş yeni istifadəçilərdə (ilk 1/3 real reytinq) tənzimlənir.
+- `warm` çəkiləri ≥ 5 reytinqli warm validation istifadəçilərində tənzimlənir. `light` çəkiləri 1–4 reytinqli bütün validation sətirlərində tənzimlənir: simulyasiya olunmuş yeni istifadəçilər (ilk 1 və ya 3 real reytinq) və tarixçəsi qısa olan warm istifadəçilər birlikdə.
 - `cold` (0 reytinq): `cold_start.py` — log-populyarlıq + damped orta reytinq, onboarding janrlarına görə affinity, MMR ilə janr müxtəlifliyi. Janr hissəsi heuristic-dir (data ilə tənzimlənməyib) və sənəddə belə qeyd olunub.
 - Yeni film (heç kim reytinq verməyib): content oxşarlığı bütün kataloqu əhatə edir, ona görə belə filmlər "Similar" siyahılarında və content/hybrid skorlarında görünə bilir.
 

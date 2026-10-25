@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from app.db import Item, User, UserGenrePreference
@@ -36,10 +37,11 @@ def profile_from_movielens(ml_user_id: int, db: Session = Depends(get_db),
         raise HTTPException(status_code=404, detail=f"MovieLens user {ml_user_id} not found (valid: 1..6040)")
     user = db.scalar(select(User).where(User.ml_user_id == ml_user_id))
     if user is None:
-        user = User(display_name=f"MovieLens user #{ml_user_id}", ml_user_id=ml_user_id, onboarding_done=True)
-        db.add(user)
+        # Insert-or-ignore: two quick clicks must not race into a UNIQUE(ml_user_id) error (500).
+        db.execute(sqlite_insert(User).values(display_name=f"MovieLens user #{ml_user_id}", ml_user_id=ml_user_id,
+                                              onboarding_done=True).on_conflict_do_nothing())
         db.commit()
-        db.refresh(user)
+        user = db.scalar(select(User).where(User.ml_user_id == ml_user_id))
     return user_out(user)
 
 
@@ -79,10 +81,9 @@ def set_preferences(body: PreferencesIn, user: User = Depends(get_user), db: Ses
                     engine: RecommendationEngine = Depends(get_engine)) -> UserOut:
     check_genres(engine, *body.genres)
     user = db.merge(user)
-    user.preferences.clear()
-    db.flush()
-    for g in sorted(set(body.genres)):
-        user.preferences.append(UserGenrePreference(user_id=user.id, genre=g))
+    # Delete in SQL, not via the loaded collection: a concurrent request may have committed rows it doesn't hold.
+    db.execute(delete(UserGenrePreference).where(UserGenrePreference.user_id == user.id))
+    db.add_all(UserGenrePreference(user_id=user.id, genre=g) for g in sorted(set(body.genres)))
     user.onboarding_done = True
     db.commit()
     db.refresh(user)

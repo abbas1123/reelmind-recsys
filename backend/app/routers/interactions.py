@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy import select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from app.db import Favorite, Interaction, Rating, User
@@ -27,16 +28,13 @@ def _log(db: Session, user_id: int, kind: str, item_id: int | None = None, query
 def rate(item_id: int, body: RatingIn, user: User = Depends(get_user), db: Session = Depends(get_db),
          engine: RecommendationEngine = Depends(get_engine)) -> RatingOut:
     item = get_item(item_id, db)
-    row = db.get(Rating, (user.id, item_id))
-    if row is None:
-        row = Rating(user_id=user.id, item_id=item_id, rating=float(body.rating))
-        db.add(row)
-    else:
-        row.rating = float(body.rating)
-        row.created_at = datetime.now(UTC)
-    _log(db, user.id, "rate", item_id, value=float(body.rating))
+    value, now = float(body.rating), datetime.now(UTC)
+    # One atomic upsert: a get-then-insert lets two quick clicks race into a UNIQUE error (500).
+    db.execute(sqlite_insert(Rating).values(user_id=user.id, item_id=item_id, rating=value, created_at=now)
+               .on_conflict_do_update(index_elements=["user_id", "item_id"], set_={"rating": value, "created_at": now}))
+    _log(db, user.id, "rate", item_id, value=value)
     db.commit()
-    db.refresh(row)
+    row = db.get(Rating, (user.id, item_id), populate_existing=True)
     return RatingOut(item=item_out(item, engine), rating=row.rating, created_at=row.created_at)
 
 
@@ -62,13 +60,12 @@ def list_ratings(user: User = Depends(get_user), db: Session = Depends(get_db),
 def add_favorite(item_id: int, user: User = Depends(get_user), db: Session = Depends(get_db),
                  engine: RecommendationEngine = Depends(get_engine)) -> FavoriteOut:
     item = get_item(item_id, db)
-    row = db.get(Favorite, (user.id, item_id))
-    if row is None:
-        row = Favorite(user_id=user.id, item_id=item_id)
-        db.add(row)
+    # Insert-or-ignore (race-safe, see rate()); only a real insert is logged as "added".
+    added = db.execute(sqlite_insert(Favorite).values(user_id=user.id, item_id=item_id).on_conflict_do_nothing())
+    if added.rowcount:
         _log(db, user.id, "favorite", item_id, value=1.0)
-        db.commit()
-        db.refresh(row)
+    db.commit()
+    row = db.get(Favorite, (user.id, item_id), populate_existing=True)
     return FavoriteOut(item=item_out(item, engine), created_at=row.created_at)
 
 

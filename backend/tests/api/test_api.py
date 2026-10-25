@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from datetime import datetime, timedelta
 
 import pytest
@@ -128,6 +129,43 @@ def test_favorites_and_history(client):
     assert kinds[0] == "search" and "favorite" in kinds
     assert client.delete(f"/api/users/{user['id']}/favorites/260").status_code == 204
     assert client.get(f"/api/users/{user['id']}/favorites").json() == []
+
+
+def _concurrently(fn, n: int = 4) -> list:
+    """Fire ``fn`` from n threads at once (a rapid double-click); return status codes or raised exceptions."""
+    barrier, out = threading.Barrier(n), []
+
+    def run():
+        barrier.wait()
+        try:
+            out.append(fn().status_code)
+        except Exception as exc:  # noqa: BLE001 - the server error is what the test reports
+            out.append(repr(exc))
+
+    threads = [threading.Thread(target=run) for _ in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return out
+
+
+def test_concurrent_duplicate_writes_do_not_fail(client):
+    # Two quick clicks send the same PUT/POST twice; the loser of the insert race used to hit a UNIQUE error (500).
+    user = _new_user(client)
+    uid = user["id"]
+    assert _concurrently(lambda: client.put(f"/api/users/{uid}/ratings/1", json={"rating": 4})) == [200] * 4
+    assert _concurrently(lambda: client.put(f"/api/users/{uid}/favorites/1")) == [200] * 4
+    prefs = {"genres": ["Comedy", "Drama", "War"]}
+    assert _concurrently(lambda: client.put(f"/api/users/{uid}/preferences", json=prefs)) == [200] * 4
+    assert _concurrently(lambda: client.post("/api/users/from-movielens/2")) == [200] * 4
+
+    assert [r["rating"] for r in client.get(f"/api/users/{uid}/ratings").json()] == [4]
+    assert [f["item"]["id"] for f in client.get(f"/api/users/{uid}/favorites").json()] == [1]
+    assert client.get(f"/api/users/{uid}").json()["preferred_genres"] == prefs["genres"]
+    kinds = [h["kind"] for h in client.get(f"/api/users/{uid}/history").json()]
+    assert kinds.count("favorite") == 1 and kinds.count("rate") == 4  # one "added" event, every rating logged
+    assert sum(u["ml_user_id"] == 2 for u in client.get("/api/users").json()) == 1
 
 
 def test_movielens_profile_gets_warm_recommendations(client, engine):

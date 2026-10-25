@@ -52,6 +52,14 @@ export default function MoviePage() {
     },
     onSuccess: afterChange,
   });
+  // This page stays mounted between /movie/:id routes: drop the previous film's errors on navigation, and show
+  // only the latest action's error (an old failed rating must not linger after a successful save).
+  useEffect(() => {
+    rate.reset();
+    unrate.reset();
+    fav.reset();
+  }, [id]);
+  const actionError = [rate, unrate, fav].reduce((a, b) => (b.submittedAt > a.submittedAt ? b : a)).error;
 
   if (item.isLoading) return <CenterSpinner label="Loading film" />;
   if (item.error || !item.data) return <ErrorAlert error={item.error ?? "Not found"} />;
@@ -123,7 +131,7 @@ export default function MoviePage() {
               <span className="text-[13px] text-paper-3">Ratings and saves are folded into your recommendations immediately.</span>
             </div>
           )}
-          {(rate.error || unrate.error || fav.error) && <ErrorAlert error={rate.error ?? unrate.error ?? fav.error} />}
+          {actionError && <ErrorAlert error={actionError} />}
 
           {m.tags.length > 0 && (
             <div>
