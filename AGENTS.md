@@ -27,7 +27,7 @@ Ports used: 8010 (backend) and 5173 (frontend).
 Commands are the same in PowerShell and bash unless noted. Run backend commands inside `backend/`
 and frontend commands inside `frontend/`.
 
-1. **Clone**
+1. **Clone** (on Windows into a short path, e.g. `C:\src` — see "If something fails")
    ```bash
    git clone https://github.com/abbas1123/reelmind-recsys
    cd reelmind-recsys
@@ -91,6 +91,7 @@ and frontend commands inside `frontend/`.
 | `Port 8010 is already in use` / `5173` | Another program uses the port: `uv run recsys serve --port 8020`, then start the frontend with `VITE_API_PROXY=http://127.0.0.1:8020 npm run dev` (PowerShell: `$env:VITE_API_PROXY="http://127.0.0.1:8020"; npm run dev`). |
 | `SSL: CERTIFICATE_VERIFY_FAILED` during download | Corporate proxy. The code already uses the OS trust store; see `docs/TROUBLESHOOTING.md`. Do **not** disable TLS verification. |
 | Embedding model download fails | The pipeline continues without semantic search; retry later with `uv run recsys download-models`. |
+| `FileNotFoundError` from `transformers`, or "sentence-transformers unavailable" (Windows) | The clone path is too long for Windows' 260-character limit (the venv's `transformers` files exceed it). Clone into a short path such as `C:\src\reelmind-recsys`, delete `backend\.venv`, and repeat from step 2. Everything except semantic search still works meanwhile. |
 | `failed to remove file ... recsys.exe` (Windows) | A running `recsys` process holds the file: stop it or use `uv run --no-sync ...`. |
 | API returns 503 "engine not loaded" | Training has not finished: run step 3. |
 

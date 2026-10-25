@@ -38,7 +38,8 @@ def is_available(settings: Settings) -> bool:
         _offline()
     try:
         import sentence_transformers  # noqa: F401
-    except ImportError:
+    except Exception as exc:  # ImportError, or e.g. Windows MAX_PATH errors inside transformers: stay optional
+        log.warning("sentence-transformers unavailable (%s: %s); semantic features disabled.", type(exc).__name__, exc)
         return False
     return (local_model_dir(settings) / "config.json").exists()
 
