@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { api } from "../api/client";
+import { ApiError, api } from "../api/client";
 import type { User } from "../api/types";
 
 const KEY = "reelmind.profileId";
@@ -31,7 +31,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     queryKey: ["user", profileId],
     queryFn: () => api.user(profileId!),
     enabled: profileId !== null,
-    retry: false,
+    // Network errors (backend still starting) are retried; only a 404 means the stored profile is gone.
+    retry: (count, err) => !(err instanceof ApiError && err.status === 404) && count < 5,
+    retryDelay: 1500,
   });
 
   const select = useCallback(
@@ -49,7 +51,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   );
 
   // A stored id whose profile was deleted falls back to the profile picker.
-  const stale = query.isError && profileId !== null;
+  const stale = profileId !== null && query.error instanceof ApiError && query.error.status === 404;
   const value = useMemo<ProfileCtx>(
     () => ({
       profileId: stale ? null : profileId,

@@ -91,7 +91,12 @@ function TopSearch() {
 export function AppShell({ children }: { children: ReactNode }) {
   const { profile, profileId } = useProfile();
   const genres = profile?.preferred_genres ?? [];
-  const health = useQuery({ queryKey: ["health"], queryFn: api.health });
+  // Poll until the models are up (e.g. the page was opened while the backend was still starting).
+  const health = useQuery({
+    queryKey: ["health"],
+    queryFn: api.health,
+    refetchInterval: (q) => (q.state.data?.status === "ok" ? false : 5000),
+  });
   const nav = NAV.filter((n) => !n.needsProfile || profileId);
 
   return (
