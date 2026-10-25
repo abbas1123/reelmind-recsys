@@ -142,8 +142,9 @@ def serve(
 def pipeline(
     quick: Annotated[bool, typer.Option(help="Quick training (smoke test)")] = False,
     skip_download: Annotated[bool, typer.Option(help="Use already downloaded files")] = False,
+    posters: Annotated[bool, typer.Option(help="Also cache Wikipedia posters (rate-limited: can take hours)")] = False,
 ) -> None:
-    """download -> download-models -> preprocess -> download-posters -> train -> seed-db, in order."""
+    """download -> download-models -> preprocess -> [download-posters] -> train -> seed-db, in order."""
     if not skip_download:
         download()
         try:
@@ -151,7 +152,7 @@ def pipeline(
         except Exception as exc:  # embeddings are optional; the rest of the pipeline still works
             log.warning("Embedding model download failed (%s); continuing without semantic features.", exc)
     preprocess()
-    if not skip_download:
+    if posters:
         try:
             download_posters()
         except Exception as exc:  # posters are optional; the UI falls back to generated artwork

@@ -1,8 +1,9 @@
 # One-time setup: dependencies, data, embedding model, preprocessing, training, database.
-# Usage (from the project root):  powershell -ExecutionPolicy Bypass -File scripts\setup.ps1 [-Quick] [-Gpu]
+# Usage (from the project root):  powershell -ExecutionPolicy Bypass -File scripts\setup.ps1 [-Quick] [-Gpu] [-Posters]
 param(
     [switch]$Quick,   # smoke-test training (one configuration per model, ~5 min)
-    [switch]$Gpu      # install the CUDA 12.8 build of torch instead of the CPU build
+    [switch]$Gpu,     # install the CUDA 12.8 build of torch instead of the CPU build
+    [switch]$Posters  # also cache Wikipedia posters (rate-limited by Wikimedia: can take hours; resumable)
 )
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -24,7 +25,10 @@ try {
     Check "uv sync"
 
     Step "Running the data + training pipeline"
-    if ($Quick) { uv run recsys pipeline --quick } else { uv run recsys pipeline }
+    $pipelineArgs = @("run", "recsys", "pipeline")
+    if ($Quick) { $pipelineArgs += "--quick" }
+    if ($Posters) { $pipelineArgs += "--posters" }
+    & uv @pipelineArgs
     Check "recsys pipeline"
 
     Step "Verifying saved models"

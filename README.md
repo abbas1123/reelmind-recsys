@@ -24,6 +24,12 @@ MovieLens 1M üzərində qurulmuş, **tam lokal** işləyən film tövsiyə sist
 
 Yaddaş: ~3 GB RAM (training zamanı), ~1 GB disk (data + artifaktlar + embedding modeli). GPU lazım deyil.
 
+## AI ilə quraşdırma
+
+Repo-da AI agentləri üçün addım-addım təlimat var: [AGENTS.md](AGENTS.md) (Claude Code, Codex, Cursor, Copilot və s. onu avtomatik oxuyur). Öz AI köməkçinə sadəcə bunu yaz:
+
+> Bu layihəni kompüterimdə quraşdır və işə sal: https://github.com/abbas1123/reelmind-recsys — repo-dakı AGENTS.md təlimatına addım-addım əməl et və hər addımın yoxlamasını et.
+
 ## Tez başlanğıc
 
 ```powershell
@@ -55,7 +61,7 @@ npm install
 npm run dev                         # http://127.0.0.1:5173 (/api → 8010 proxy)
 ```
 
-Hamısı bir komanda ilə: `uv run recsys pipeline` (download → models → preprocess → posters → train → seed-db).
+Hamısı bir komanda ilə: `uv run recsys pipeline` (download → models → preprocess → train → seed-db). Posterlər yavaş olduğu üçün opsionaldır: `uv run recsys pipeline --posters` və ya sonradan ayrıca `uv run recsys download-posters`.
 
 ## Canlı demo linki (müvəqqəti)
 
